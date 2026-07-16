@@ -1,0 +1,25 @@
+---
+description: Visión del producto — landing inmobiliaria estilo Apple
+alwaysApply: true
+---
+
+# Producto
+
+Sitio de presentación de proyectos inmobiliarios. El pitch principal vive en **una sola página** con scroll narrativo (estilo Apple product page): hero → atributos → espacios → amenities → ubicación → CTA.
+
+## Estructura de página
+
+- Primero viewport = una composición: marca/proyecto, un headline, una frase, CTA, imagen dominante a full-bleed.
+- Cada sección = un propósito, un headline, una frase de apoyo. Sin dashboards, stats strips ni cards decorativas.
+- El recorrido se cuenta con scroll (pin/scrub), no con menús profundos ni páginas satélite para el contenido core.
+
+## Contenido
+
+- Copy claro y concreto (beneficios del inmueble, no jerga de marketing vacía).
+- Imágenes reales del lugar/proyecto como ancla visual; no sustituir con solo gradientes abstractos.
+- Español por defecto en UI y copy salvo que se pida otro idioma.
+
+## Fuera de alcance (por ahora)
+
+- CMS pesado, autenticación, paneles admin, marketplaces multi-listado.
+- Librerías UI grandes (MUI, Chakra, etc.). Tailwind + componentes propios.

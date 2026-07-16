@@ -1,0 +1,33 @@
+---
+description: Rendimiento — landing rápida (LCP, JS, assets)
+globs: frontend/**/*.{tsx,ts,jsx,js}
+alwaysApply: false
+---
+
+# Rendimiento
+
+La página debe sentirse instantánea en móvil. Cada dependencia y animación se justifica.
+
+## Imágenes y media
+
+- Usar `next/image` con `sizes` correctos; priorizar formato moderno (AVIF/WebP).
+- Hero: `priority` solo en la LCP image; el resto lazy.
+- No cargar vídeos autoplay pesados above-the-fold sin poster + lazy.
+
+## JavaScript
+
+- Server Components por defecto; `"use client"` solo donde haya GSAP, estado o interacción.
+- Code-split secciones animadas si el bundle crece (`dynamic` con `ssr: false` solo si hace falta).
+- No añadir librerías de UI/animación alternativas (Framer, Lottie pesado) sin necesidad clara.
+
+## Animación y paint
+
+- Animar solo `transform` y `opacity`. Evitar animar `width`/`height`/`top`/`left`.
+- Un ScrollTrigger por beat narrativo; no apilar triggers redundantes.
+- Tras cambios de layout/fuentes/imágenes: `ScrollTrigger.refresh()`.
+
+## Checklist antes de merge
+
+- LCP image definida y optimizada
+- Sin JS muerto ni imports de GSAP en el árbol servidor innecesario
+- `prefers-reduced-motion` contemplado

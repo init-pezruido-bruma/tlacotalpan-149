@@ -1,0 +1,38 @@
+---
+description: Convenciones GSAP + ScrollTrigger en React/Next
+globs: frontend/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# GSAP en este proyecto
+
+Scroll narrativo estilo Apple: pin de secciones, scrub ligado al scroll, timelines cortas.
+
+## Setup
+
+- Registrar plugins una vez (`ScrollTrigger`; otros solo si se usan).
+- Preferir `@gsap/react` y `useGSAP` con `scope` en un ref de contenedor.
+- Si no hay `useGSAP`: `gsap.context()` en efecto + **siempre** `ctx.revert()` al cleanup.
+- No ejecutar GSAP en Server Components; encapsular en client components.
+
+## Patrones
+
+```tsx
+// ✅ scope + cleanup automático
+useGSAP(() => {
+  gsap.to(".panel", {
+    opacity: 1,
+    scrollTrigger: { trigger: sectionRef.current, scrub: true, pin: true },
+  });
+}, { scope: sectionRef });
+```
+
+- Targets por **refs** o selectores dentro del `scope`; evitar selectores globales frágiles.
+- Con `pin: true`, animar **hijos**, no el elemento pineado.
+- `scrub: true` o número suave para storytelling; `markers` solo en dev.
+- Timelines cortas por sección; orquestar con el position parameter, no un mega-timeline monolítico salvo un acto continuo.
+
+## Accesibilidad y perf
+
+- Respetar `prefers-reduced-motion`: saltar pin/scrub o usar fades mínimos.
+- Solo `transform` / `opacity`. Llamar `ScrollTrigger.refresh()` tras cargar media que cambie altura.

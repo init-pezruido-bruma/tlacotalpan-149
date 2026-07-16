@@ -1,0 +1,33 @@
+---
+description: Diseño limpio y patrones Tailwind para la landing
+globs: frontend/**/*.{tsx,jsx,css}
+alwaysApply: false
+---
+
+# Diseño
+
+Estética limpia, editorial y espacial. Priorizar tipografía, whitespace e imagen; no UI “app”.
+
+## Layout y secciones
+
+- Una composición por viewport; hero full-bleed (edge-to-edge), sin imagen inset ni collage.
+- Sin overlays flotantes en el hero (badges, chips, stickers).
+- Cards solo si envuelven una interacción real; si el borde/sombra no aporta, quitarlos.
+- Mobile-first; revisar que tipografía y CTAs respiren en viewport estrecho.
+
+## Tailwind
+
+- Utilidades de Tailwind para layout/spacing/type. Evitar CSS custom salvo tokens globales o casos GSAP/keyframes.
+- Tokens en CSS (`globals.css`): color, tipografía, ritmo vertical. Reutilizar variables, no hardcodear paletas sueltas.
+- Componentes delgados en `components/` (o colocalizados); props mínimas; sin abstracciones prematuras.
+
+## Tipografía y color
+
+- Fuentes expresivas vía `next/font` (evitar Inter/Roboto/Arial/system como display).
+- Dirección visual clara y coherente con inmobiliaria premium (luz, material, espacio).
+- Evitar clichés AI: púrpuras/indigo, cream+#terracotta genérico, glow, pills `rounded-full` en exceso, multi-shadow.
+
+## Motion
+
+- GSAP para presencia y jerarquía (2–3 beats intencionales por sección clave), no ruido.
+- Respetar `prefers-reduced-motion`: atenuar o desactivar scrub/pin elaborados.
