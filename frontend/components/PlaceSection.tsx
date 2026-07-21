@@ -48,7 +48,8 @@ export function PlaceSection() {
         scrollTrigger: {
           trigger: section,
           start: "top top",
-          end: "+=200%",
+          // Un poco más de recorrido: hold inicial + transición + hold final
+          end: "+=240%",
           pin: true,
           // Scrub directo: sin lag que deje el texto a medias al pasar a planos
           scrub: true,
@@ -58,12 +59,14 @@ export function PlaceSection() {
         },
       });
 
-      // Todo el contenido entra pronto; el resto es hold con composición final
-      tl.to(frame, { ...endFrame, duration: 1 }, 0);
-      tl.to(title, { autoAlpha: 1, y: 0, duration: 0.35 }, 0.25);
-      tl.to(subtitle, { autoAlpha: 1, y: 0, duration: 0.3 }, 0.4);
-      tl.to(body, { autoAlpha: 1, y: 0, duration: 0.35 }, 0.55);
-      // Hold ~40% del pin con texto ya opaco
+      // Hold breve con la imagen full-bleed antes de encoger el frame
+      const settle = 0.4;
+      tl.to({}, { duration: settle });
+      tl.to(frame, { ...endFrame, duration: 1 }, settle);
+      tl.to(title, { autoAlpha: 1, y: 0, duration: 0.35 }, settle + 0.25);
+      tl.to(subtitle, { autoAlpha: 1, y: 0, duration: 0.3 }, settle + 0.4);
+      tl.to(body, { autoAlpha: 1, y: 0, duration: 0.35 }, settle + 0.55);
+      // Hold con composición final ya armada
       tl.to({}, { duration: 1.2 });
     },
     { scope: sectionRef },
