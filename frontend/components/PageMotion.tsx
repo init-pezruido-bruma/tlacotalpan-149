@@ -23,6 +23,7 @@ export function PageMotion({ children }: { children: React.ReactNode }) {
             ".hero-headline",
             ".hero-support",
             ".hero-cta",
+            ".hero-plan",
             ".reveal",
           ],
           { opacity: 1, y: 0 },
@@ -32,10 +33,11 @@ export function PageMotion({ children }: { children: React.ReactNode }) {
 
       const heroTl = gsap.timeline({ defaults: { ease: "power2.out" } });
       heroTl
-        .from(".hero-brand", { opacity: 0, y: 16, duration: 0.7 }, 0.15)
-        .from(".hero-headline", { opacity: 0, y: 28, duration: 0.9 }, 0.28)
-        .from(".hero-support", { opacity: 0, y: 20, duration: 0.75 }, 0.45)
-        .from(".hero-cta", { opacity: 0, y: 14, duration: 0.6 }, 0.62);
+        .from(".hero-plan", { opacity: 0, duration: 1.2 }, 0)
+        .from(".hero-brand", { opacity: 0, y: 16, duration: 0.7 }, 0.2)
+        .from(".hero-headline", { opacity: 0, y: 28, duration: 0.9 }, 0.35)
+        .from(".hero-support", { opacity: 0, y: 20, duration: 0.75 }, 0.5)
+        .from(".hero-cta", { opacity: 0, y: 14, duration: 0.6 }, 0.68);
 
       gsap.utils.toArray<HTMLElement>(".reveal").forEach((el) => {
         gsap.from(el, {

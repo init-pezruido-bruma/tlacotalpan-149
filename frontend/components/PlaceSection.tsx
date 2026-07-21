@@ -1,54 +1,70 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRef } from "react";
 import { place } from "../content";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 export function PlaceSection() {
   const sectionRef = useRef<HTMLElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const bodyRef = useRef<HTMLParagraphElement>(null);
 
   useGSAP(
     () => {
+      const section = sectionRef.current;
+      const frame = frameRef.current;
+      const title = titleRef.current;
+      const subtitle = subtitleRef.current;
+      const body = bodyRef.current;
+      if (!section || !frame || !title || !subtitle || !body) return;
+
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      const image = sectionRef.current?.querySelector(".place-image");
-      const copy = sectionRef.current?.querySelectorAll(
-        ".place-eyebrow, .place-headline, .place-body",
-      );
-
-      if (!image || !copy?.length) return;
+      const desktop = window.matchMedia("(min-width: 768px)").matches;
+      const endFrame = desktop
+        ? { top: "10%", left: "54%", width: "42%", height: "80%" }
+        : { top: "5%", left: "6%", width: "88%", height: "38%" };
 
       if (reduce) {
-        gsap.set([image, ...copy], { opacity: 1, y: 0, scale: 1 });
+        gsap.set(frame, endFrame);
+        gsap.set([title, subtitle, body], { autoAlpha: 1, y: 0 });
         return;
       }
 
-      gsap.set(image, { opacity: 0, scale: 0.94 });
-      gsap.set(copy, { opacity: 0, y: 32 });
+      gsap.set(frame, { top: 0, left: 0, width: "100%", height: "100%" });
+      gsap.set([title, subtitle, body], { autoAlpha: 0, y: 28 });
 
       const tl = gsap.timeline({
-        defaults: { ease: "power2.out" },
+        defaults: { ease: "none" },
         scrollTrigger: {
-          trigger: sectionRef.current,
+          trigger: section,
           start: "top top",
-          end: "+=120%",
+          end: "+=200%",
           pin: true,
-          scrub: 0.8,
+          // Scrub directo: sin lag que deje el texto a medias al pasar a planos
+          scrub: true,
+          fastScrollEnd: true,
           anticipatePin: 1,
+          invalidateOnRefresh: true,
         },
       });
 
-      tl.to(image, { opacity: 1, scale: 1, duration: 0.35 })
-        .to(".place-eyebrow", { opacity: 1, y: 0, duration: 0.18 }, "+=0.08")
-        .to(".place-headline", { opacity: 1, y: 0, duration: 0.22 })
-        .to(".place-body", { opacity: 1, y: 0, duration: 0.18 });
+      // Todo el contenido entra pronto; el resto es hold con composición final
+      tl.to(frame, { ...endFrame, duration: 1 }, 0);
+      tl.to(title, { autoAlpha: 1, y: 0, duration: 0.35 }, 0.25);
+      tl.to(subtitle, { autoAlpha: 1, y: 0, duration: 0.3 }, 0.4);
+      tl.to(body, { autoAlpha: 1, y: 0, duration: 0.35 }, 0.55);
+      // Hold ~40% del pin con texto ya opaco
+      tl.to({}, { duration: 1.2 });
     },
     { scope: sectionRef },
   );
@@ -57,26 +73,46 @@ export function PlaceSection() {
     <section
       ref={sectionRef}
       id={place.id}
-      className="bg-surface px-[max(1.25rem,calc((100%-var(--content))/2))] py-[var(--section-pad)]"
+      className="place-surface relative isolate overflow-hidden"
     >
-      <div className="grid min-h-[70svh] items-center gap-10 md:min-h-[75svh] md:grid-cols-12 md:gap-12">
-        <div className="md:col-span-5">
-          <p className="place-eyebrow text-xs font-medium tracking-[0.2em] text-muted uppercase">
-            {place.eyebrow}
-          </p>
-          <h2 className="place-headline mt-4 font-display text-[clamp(2rem,4.5vw,3.25rem)] leading-[1.1] tracking-[-0.02em]">
-            {place.headline}
-          </h2>
-          <p className="place-body mt-6 max-w-sm text-base leading-relaxed text-muted">
-            {place.body}
-          </p>
+      <div className="place-grain" aria-hidden />
+
+      <div className="relative h-[100svh] w-full">
+        <div className="absolute inset-0 z-10 flex items-end px-[max(1.25rem,calc((100%-var(--content))/2))] pt-24 pb-14 md:items-center md:py-0">
+          <div className="place-copy w-full max-w-lg md:w-[min(46%,32rem)]">
+            <h2
+              ref={titleRef}
+              className="text-[clamp(1.65rem,3.8vw,2.65rem)] leading-[1.15] font-medium tracking-[0.08em] text-place-ink uppercase"
+            >
+              <span className="whitespace-nowrap">{place.title}</span>
+              <br />
+              {place.titleLine2}
+            </h2>
+            <p
+              ref={subtitleRef}
+              className="mt-8 text-[0.7rem] font-medium tracking-[0.22em] text-place-ink uppercase md:mt-10 md:text-xs"
+            >
+              {place.subtitle}
+            </p>
+            <p
+              ref={bodyRef}
+              className="mt-8 max-w-sm text-[0.9rem] leading-[1.75] font-light text-place-ink md:mt-10 md:text-[0.95rem] md:leading-[1.8]"
+            >
+              {place.body}
+            </p>
+          </div>
         </div>
-        <div className="place-image relative aspect-[4/5] overflow-hidden md:col-span-7 md:aspect-[5/4]">
+
+        <div
+          ref={frameRef}
+          className="place-frame absolute top-0 left-0 z-20 h-full w-full overflow-hidden will-change-[top,left,width,height]"
+        >
           <Image
             src={place.image.src}
             alt={place.image.alt}
             fill
-            sizes="(max-width: 768px) 100vw, 58vw"
+            priority
+            sizes="100vw"
             className="object-cover"
             onLoad={() => ScrollTrigger.refresh()}
           />

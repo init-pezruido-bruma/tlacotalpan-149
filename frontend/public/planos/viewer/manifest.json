@@ -1,0 +1,44 @@
+[
+  {
+    "src": "/planos/viewer/plan-00.png",
+    "title": "SEMISÓTANO — ESTACIONAMIENTO",
+    "w": 1600,
+    "h": 1049
+  },
+  {
+    "src": "/planos/viewer/plan-01.png",
+    "title": "DEPARTAMENTOS 101 Y 102 — NIVEL 01",
+    "w": 1600,
+    "h": 572
+  },
+  {
+    "src": "/planos/viewer/plan-02.png",
+    "title": "DEPARTAMENTOS 101 Y 102 — NIVEL 02",
+    "w": 1600,
+    "h": 476
+  },
+  {
+    "src": "/planos/viewer/plan-03.png",
+    "title": "TOWN HOUSES 201 Y 202 — NIVEL 01",
+    "w": 1600,
+    "h": 333
+  },
+  {
+    "src": "/planos/viewer/plan-04.png",
+    "title": "TOWN HOUSES 201 Y 202 — NIVEL 02",
+    "w": 1600,
+    "h": 352
+  },
+  {
+    "src": "/planos/viewer/plan-05.png",
+    "title": "TOWN HOUSES 201 Y 202 — ROOF GARDEN",
+    "w": 1600,
+    "h": 362
+  },
+  {
+    "src": "/planos/viewer/plan-06.png",
+    "title": "TIPOLOGÍA A — PLANTA TIPO",
+    "w": 1600,
+    "h": 664
+  }
+]
