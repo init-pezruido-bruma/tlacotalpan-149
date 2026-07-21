@@ -29,10 +29,26 @@ export function ContactSection() {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line/40 bg-background px-[max(1.25rem,calc((100%-var(--content))/2))] py-8">
-      <div className="flex flex-col gap-2 text-sm text-muted md:flex-row md:items-center md:justify-between">
-        <p className="font-display text-foreground">{footer.brand}</p>
-        <p>{footer.legal}</p>
+    <footer className="footer-surface relative isolate overflow-hidden">
+      <div className="relative z-10 mx-auto flex min-h-[min(52svh,28rem)] w-[var(--content)] flex-col justify-end gap-10 pt-24 pb-10 md:min-h-[min(48svh,26rem)] md:flex-row md:items-end md:justify-between md:gap-12 md:pt-28 md:pb-12">
+        <div className="max-w-3xl">
+          <p className="text-[0.68rem] font-medium tracking-[0.28em] text-hero-ink/90 uppercase md:text-[0.72rem]">
+            {footer.location}
+          </p>
+          <p className="mt-4 text-[clamp(1.85rem,5.5vw,3.5rem)] leading-[1.05] font-medium tracking-[0.06em] text-hero-ink uppercase md:mt-5">
+            {footer.brand}
+          </p>
+          <p className="mt-4 max-w-md text-[0.85rem] leading-relaxed font-light text-hero-ink/80 md:mt-5 md:text-[0.95rem]">
+            {footer.tagline}
+          </p>
+        </div>
+
+        <a
+          href={footer.privacy.href}
+          className="shrink-0 self-start text-[0.8rem] text-hero-ink/85 underline decoration-hero-ink/35 underline-offset-[5px] transition-[text-decoration-color,color] hover:text-hero-ink hover:decoration-hero-ink/70 md:self-end md:text-[0.85rem]"
+        >
+          {footer.privacy.label}
+        </a>
       </div>
     </footer>
   );

@@ -367,6 +367,11 @@ export const contact = {
 } as const;
 
 export const footer = {
+  location: "La Roma · Ciudad de México",
   brand: site.brand,
-  legal: "Tlacotalpan 149 · La Roma, Ciudad de México",
+  tagline: site.description,
+  privacy: {
+    label: "Aviso de privacidad",
+    href: "#",
+  },
 } as const;

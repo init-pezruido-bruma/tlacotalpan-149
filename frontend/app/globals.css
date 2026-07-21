@@ -84,6 +84,16 @@ body {
   );
 }
 
+.footer-surface {
+  background: linear-gradient(
+    92deg,
+    var(--hero-green-deep) 0%,
+    var(--hero-green-mid) 48%,
+    #8a8f7a 78%,
+    #9a9e8c 100%
+  );
+}
+
 .hero-grain,
 .intro-grain {
   position: absolute;
