@@ -47,6 +47,30 @@ export const place = {
   },
 } as const;
 
+export const spaces = {
+  id: "espacios",
+  eyebrow: "Espacios",
+  headline: "Lo esencial, bien resuelto.",
+  items: [
+    {
+      title: "Estar",
+      body: "Dobles alturas y aberturas generosas. El día entra sin esfuerzo.",
+    },
+    {
+      title: "Privacidad",
+      body: "Recámaras apartadas del flujo social, con su propia luz y terraza.",
+    },
+    {
+      title: "Exterior",
+      body: "Terrazas y jardín como extensión natural de la planta baja.",
+    },
+  ],
+  image: {
+    src: "/renders/TL149_D201_202_COCINA.jpg",
+    alt: "Espacio interior de Tlacotalpan 149",
+  },
+} as const;
+
 const planBody =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
 
