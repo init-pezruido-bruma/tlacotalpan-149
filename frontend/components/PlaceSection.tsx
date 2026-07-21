@@ -115,7 +115,7 @@ export function PlaceSection() {
             alt={place.image.alt}
             fill
             priority
-            sizes="100vw"
+            sizes="(max-width: 767px) 88vw, 42vw"
             className="object-cover"
             onLoad={() => ScrollTrigger.refresh()}
           />

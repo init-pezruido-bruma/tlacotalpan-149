@@ -63,6 +63,7 @@ export function IsometricSection() {
             alt={isometric.cut.alt}
             fill
             unoptimized
+            priority
             sizes="(max-width: 1024px) 100vw, 1152px"
             className="object-contain"
             onLoad={() => ScrollTrigger.refresh()}

@@ -13,6 +13,7 @@ export const nav = {
   links: [
     { label: "El lugar", href: "#lugar" },
     { label: "Planos", href: "#planos" },
+    { label: "Recorridos", href: "#recorridos" },
     { label: "Contacto", href: "#contacto" },
   ],
 } as const;
@@ -148,6 +149,90 @@ export const isometric = {
     src: "/isometricos/iso-general-01.webp",
     alt: "Isométrico de Tlacotalpan 149",
   },
+} as const;
+
+const panoramaBody =
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.";
+
+/** Espacios 360 del depto / townhouse 201–202 (assets actuales). */
+const spaces201_202 = [
+  {
+    id: "fachada",
+    title: "Fachada",
+    body: panoramaBody,
+    src: "/360renders/TL149_EXTERIOR_FACHADA.png",
+  },
+  {
+    id: "estudio",
+    title: "Estudio",
+    body: panoramaBody,
+    src: "/360renders/TL149_ESTACIONAMIENTO_ESTUDIO.jpg",
+  },
+  {
+    id: "sala-comedor",
+    title: "Sala comedor",
+    body: panoramaBody,
+    src: "/360renders/TL149_D201_202_SALA COMEDOR.png",
+  },
+  {
+    id: "cocina",
+    title: "Cocina",
+    body: panoramaBody,
+    src: "/360renders/TL149_D201_202_COCINA.jpg",
+  },
+  {
+    id: "sala-tv",
+    title: "Sala TV",
+    body: panoramaBody,
+    src: "/360renders/TL149_D201_202_SALA TV.png",
+  },
+  {
+    id: "recamara-01",
+    title: "Habitación principal",
+    body: panoramaBody,
+    src: "/360renders/TL149_D201_202_RECAMARA 01.jpg",
+  },
+  {
+    id: "bano",
+    title: "Baño",
+    body: panoramaBody,
+    src: "/360renders/TL149_D201_202_BAÑO REC. PRINCIPAL.png",
+  },
+  {
+    id: "recamara-02",
+    title: "Recámara 02",
+    body: panoramaBody,
+    src: "/360renders/TL149_D201_202_RECAMARA 02.jpg",
+  },
+  {
+    id: "roof-garden",
+    title: "Roof garden",
+    body: panoramaBody,
+    src: "/360renders/TL149_D201_202_ROOF GARDEN.jpg",
+  },
+] as const;
+
+export const panoramas = {
+  id: "recorridos",
+  units: [
+    {
+      id: "depto-102",
+      label: "Depto 102",
+      /** Sin renders 360 aún — el botón queda deshabilitado. */
+      spaces: [],
+    },
+    {
+      id: "depto-202",
+      label: "Depto 202",
+      spaces: spaces201_202,
+    },
+    {
+      id: "townhouse-202",
+      label: "Townhouse 202",
+      /** Mismos assets D201/202 por ahora; se pueden sustituir al llegar. */
+      spaces: spaces201_202,
+    },
+  ],
 } as const;
 
 export const contact = {

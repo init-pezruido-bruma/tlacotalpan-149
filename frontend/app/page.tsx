@@ -6,6 +6,7 @@ import { PageMotion } from "../components/PageMotion";
 import { PlaceSection } from "../components/PlaceSection";
 import { PlansSection } from "../components/PlansSection";
 import { ProgressSection } from "../components/ProgressSection";
+import { Renders360Section } from "../components/Renders360Section";
 import { SiteHeader } from "../components/SiteHeader";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
         <PlansSection />
         <ProgressSection />
         <IsometricSection />
+        <Renders360Section />
         <ContactSection />
       </main>
       <SiteFooter />
