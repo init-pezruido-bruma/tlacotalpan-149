@@ -154,6 +154,9 @@ export const isometric = {
 const panoramaBody =
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.";
 
+const sheetBody =
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+
 /** Espacios 360 del depto / townhouse 201–202 (assets actuales). */
 const spaces201_202 = [
   {
@@ -212,27 +215,147 @@ const spaces201_202 = [
   },
 ] as const;
 
+/** Comunes mientras llegan los 360 del 102. */
+const spacesDepto102 = [
+  spaces201_202[0],
+  spaces201_202[1],
+] as const;
+
 export const panoramas = {
   id: "recorridos",
+  brandSide: "Tlacotalpan 149",
+  compare: { label: "Compara", href: "#compara" },
   units: [
     {
       id: "depto-102",
       label: "Depto 102",
-      /** Sin renders 360 aún — el botón queda deshabilitado. */
-      spaces: [],
+      spaces: spacesDepto102,
+      sheet: {
+        title: "Depto 102",
+        summary:
+          "Departamento · 2 recámaras · 2 baños · terraza",
+        stats: [
+          { label: "Habitable", value: "86.4 m²" },
+          { label: "Terraza", value: "12.0 m²" },
+          { label: "Recámaras", value: "2" },
+        ],
+        body: sheetBody,
+        cta: { label: "Agenda visita", href: "#contacto" },
+        plan: {
+          src: "/planos/viewer/plan-01.png",
+          alt: "Planta nivel 01 — departamentos 101 y 102",
+          width: 1600,
+          height: 572,
+        },
+      },
     },
     {
-      id: "depto-202",
-      label: "Depto 202",
+      id: "townhouse-201",
+      label: "Townhouse 201",
       spaces: spaces201_202,
+      sheet: {
+        title: "Town House 201",
+        summary:
+          "Town House triplex · 148.80 m² habitables + 28.20 m² terraza · 3 recámaras · 3 baños · roof garden privado",
+        stats: [
+          { label: "Habitable", value: "148.8 m²" },
+          { label: "Terraza", value: "28.2 m²" },
+          { label: "Recámaras", value: "3" },
+        ],
+        body: sheetBody,
+        cta: { label: "Agenda visita", href: "#contacto" },
+        plan: {
+          src: "/planos/viewer/plan-06.png",
+          alt: "Planta tipología A — town house 201",
+          width: 1600,
+          height: 664,
+        },
+      },
     },
     {
       id: "townhouse-202",
       label: "Townhouse 202",
-      /** Mismos assets D201/202 por ahora; se pueden sustituir al llegar. */
       spaces: spaces201_202,
+      sheet: {
+        title: "Town House 202",
+        summary:
+          "Town House triplex · 148.80 m² habitables + 28.20 m² terraza · 3 recámaras · 3 baños · roof garden privado",
+        stats: [
+          { label: "Habitable", value: "148.8 m²" },
+          { label: "Terraza", value: "28.2 m²" },
+          { label: "Recámaras", value: "3" },
+        ],
+        body: sheetBody,
+        cta: { label: "Agenda visita", href: "#contacto" },
+        plan: {
+          src: "/planos/viewer/plan-06.png",
+          alt: "Planta tipología A — town house 202",
+          width: 1600,
+          height: 664,
+        },
+      },
     },
   ],
+} as const;
+
+export const compare = {
+  id: "compara",
+  title: "Sigue explorando Tlacotalpan 149",
+  image: {
+    src: "/isometricos/TL149_N2_DEPA.png",
+    alt: "Isométrico de tipología residencial Tlacotalpan 149",
+    width: 5760,
+    height: 3652,
+  },
+  items: [
+    {
+      id: "depto-101",
+      title: "Depto 101",
+      unitId: "depto-102",
+      features: [
+        "Lorem ipsum",
+        "Lorem ipsum",
+        "Lorem ipsum",
+        "Lorem ipsum",
+      ],
+    },
+    {
+      id: "depto-102",
+      title: "Depto 102",
+      unitId: "depto-102",
+      features: [
+        "Lorem ipsum",
+        "Lorem ipsum",
+        "Lorem ipsum",
+        "Lorem ipsum",
+      ],
+    },
+    {
+      id: "townhouse-201",
+      title: "Townhouse 201",
+      unitId: "townhouse-201",
+      features: [
+        "Lorem ipsum",
+        "Lorem ipsum",
+        "Lorem ipsum",
+        "Lorem ipsum",
+      ],
+    },
+    {
+      id: "townhouse-202",
+      title: "Townhouse 202",
+      unitId: "townhouse-202",
+      features: [
+        "Lorem ipsum",
+        "Lorem ipsum",
+        "Lorem ipsum",
+        "Lorem ipsum",
+      ],
+    },
+  ],
+  tourCta: "Ver recorrido",
+  visitCta: "Agenda visita",
+  visitHref: "#contacto",
 } as const;
 
 export const contact = {

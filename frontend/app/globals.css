@@ -22,6 +22,7 @@
   --plans-green-soft: #b8bca4;
   --plans-ink: #f4f4ec;
   --iso-surface: #e8e4d9;
+  --compare-ink: #2f3a28;
   --section-pad: clamp(4.5rem, 12vw, 8.5rem);
   --content: min(1120px, calc(100% - 2.5rem));
 }
@@ -45,6 +46,7 @@
   --color-place-ink: var(--place-ink);
   --color-plans-ink: var(--plans-ink);
   --color-iso-surface: var(--iso-surface);
+  --color-compare-ink: var(--compare-ink);
   --font-sans: var(--font-plex-mono);
   --font-display: var(--font-plex-mono);
   --font-mono: var(--font-plex-mono);
@@ -161,4 +163,13 @@ body {
 
 .iso-surface {
   background: var(--iso-surface);
+}
+
+.compare-surface {
+  background:
+    radial-gradient(
+      ellipse 90% 70% at 50% 0%,
+      #f3efe6 0%,
+      var(--iso-surface) 62%
+    );
 }

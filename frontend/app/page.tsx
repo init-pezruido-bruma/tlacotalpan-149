@@ -1,3 +1,4 @@
+import { CompareSection } from "../components/CompareSection";
 import { ContactSection, SiteFooter } from "../components/ContactSection";
 import { Hero } from "../components/Hero";
 import { IntroSection } from "../components/IntroSection";
@@ -21,6 +22,7 @@ export default function Home() {
         <ProgressSection />
         <IsometricSection />
         <Renders360Section />
+        <CompareSection />
         <ContactSection />
       </main>
       <SiteFooter />
