@@ -140,10 +140,9 @@ export function prepareScrubVideo({
   let idle = 0;
   let idleCallback = 0;
   if (eager) {
-    if ("requestIdleCallback" in window) {
-      idleCallback = window.requestIdleCallback(() => begin(), {
-        timeout: 1200,
-      });
+    const requestIdle = window.requestIdleCallback?.bind(window);
+    if (requestIdle) {
+      idleCallback = requestIdle(() => begin(), { timeout: 1200 });
     } else {
       idle = window.setTimeout(begin, 250);
     }
@@ -151,9 +150,7 @@ export function prepareScrubVideo({
 
   return () => {
     window.clearTimeout(idle);
-    if (idleCallback && "cancelIdleCallback" in window) {
-      window.cancelIdleCallback(idleCallback);
-    }
+    window.cancelIdleCallback?.(idleCallback);
     preload.kill();
     video.removeEventListener("loadedmetadata", attach);
     video.removeEventListener("durationchange", attach);
