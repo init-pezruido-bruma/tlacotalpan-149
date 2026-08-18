@@ -63,12 +63,37 @@ function getSectionScrollY(sectionId: string, progress = 0) {
   return fromRect;
 }
 
-function getTourScrollY() {
-  return getSectionScrollY(UNIT_SECTION_ID, tourScrollProgress);
-}
-
 function getIsometricScrollY() {
   return getSectionScrollY(UNIT_SECTION_ID, isoScrollProgress);
+}
+
+function scrollToSectionProgress(sectionId: string, progress: number) {
+  const st =
+    ScrollTrigger.getById(sectionId) ??
+    ScrollTrigger.getAll().find(
+      (trigger) =>
+        (trigger.trigger as HTMLElement | undefined)?.id === sectionId,
+    );
+  const scroller = document.scrollingElement ?? document.documentElement;
+  const y = st
+    ? st.start + (st.end - st.start) * progress
+    : getSectionScrollY(sectionId, progress);
+  scroller.scrollTop = y;
+  return y;
+}
+
+/** Instant jump that can leave an active ScrollTrigger pin. `gsap.set(window, { scrollTo })` is ignored while pinned. */
+function jumpToSection(sectionId: string, progress: number) {
+  gsap.killTweensOf(window);
+
+  const pins = ScrollTrigger.getAll().filter((st) => st.isActive && st.pin);
+  pins.forEach((st) => st.disable(false));
+
+  scrollToSectionProgress(sectionId, progress);
+  pins.forEach((st) => st.enable(false));
+  scrollToSectionProgress(sectionId, progress);
+  ScrollTrigger.update();
+  return scrollToSectionProgress(sectionId, progress);
 }
 
 function scrollToIsometric() {
@@ -77,9 +102,7 @@ function scrollToIsometric() {
   ).matches;
 
   if (reduce) {
-    gsap.set(window, {
-      scrollTo: { y: getIsometricScrollY(), autoKill: false },
-    });
+    jumpToSection(UNIT_SECTION_ID, isoScrollProgress);
     return;
   }
 
@@ -87,6 +110,7 @@ function scrollToIsometric() {
     scrollTo: { y: getIsometricScrollY(), autoKill: false },
     duration: 3.2,
     ease: "power2.inOut",
+    overwrite: true,
   });
 }
 
@@ -113,12 +137,15 @@ export function goToIsometric(unitId: string) {
 
 export function goToTour(unitId: string) {
   lockFacadeVideo();
+  const y = jumpToSection(UNIT_SECTION_ID, tourScrollProgress);
   setUnitParam(unitId);
   window.dispatchEvent(
     new CustomEvent<TourEventDetail>(TOUR_EVENT, { detail: { unitId } }),
   );
-
   requestAnimationFrame(() => {
-    gsap.set(window, { scrollTo: { y: getTourScrollY(), autoKill: false } });
+    const scroller = document.scrollingElement ?? document.documentElement;
+    if (Math.abs(scroller.scrollTop - y) > 24) {
+      jumpToSection(UNIT_SECTION_ID, tourScrollProgress);
+    }
   });
 }

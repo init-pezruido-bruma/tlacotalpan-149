@@ -501,7 +501,9 @@ export function UnitExploreSection() {
           { backgroundColor: "#0c0e0a", duration: 0.55 },
           "<",
         )
-        .to({}, { duration: 0.9 })
+        .to({}, { duration: 0.45 })
+        .addLabel("tourSettled")
+        .to({}, { duration: 0.45 })
         .addLabel("sheetStart")
         .to(
           panoWrap,
@@ -522,7 +524,11 @@ export function UnitExploreSection() {
         tl.labels.sheetStart !== undefined
           ? tl.labels.sheetStart / tl.duration()
           : sheetStartProgress;
-      setTourScrollProgress(tourStartProgress);
+      setTourScrollProgress(
+        tl.labels.tourSettled !== undefined
+          ? tl.labels.tourSettled / tl.duration()
+          : tourStartProgress,
+      );
       setIsoScrollProgress(
         tl.labels.isoSettled !== undefined
           ? tl.labels.isoSettled / tl.duration()
