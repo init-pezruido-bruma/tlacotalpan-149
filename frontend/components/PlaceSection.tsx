@@ -5,10 +5,9 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { place } from "../content";
+import { pickVideoSrc, prepareScrubVideo } from "../lib/scrubVideo";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
-
-const VIDEO_SRC = encodeURI(place.video.src);
 
 export function PlaceSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -70,70 +69,15 @@ export function PlaceSection() {
       tl.to(body, { autoAlpha: 1, y: 0, duration: 0.35 }, settle + 0.55);
       tl.to({}, { duration: 1.2 });
 
-      const proxy = { time: 0 };
-      let blobUrl: string | undefined;
-      const ac = new AbortController();
-
-      const waitReady = () => {
-        if (video.readyState >= 2) return Promise.resolve();
-        return new Promise<void>((resolve) => {
-          const done = () => {
-            video.removeEventListener("loadeddata", done);
-            video.removeEventListener("canplay", done);
-            resolve();
-          };
-          video.addEventListener("loadeddata", done, { once: true });
-          video.addEventListener("canplay", done, { once: true });
-        });
-      };
-
-      const attachScrub = () => {
-        if (!Number.isFinite(video.duration) || video.duration <= 0) return;
-        tl.fromTo(
-          proxy,
-          { time: 0 },
-          {
-            time: video.duration,
-            duration: tl.duration(),
-            ease: "none",
-            onUpdate: () => {
-              if (video.readyState >= 2) {
-                video.currentTime = proxy.time;
-              }
-            },
-          },
-          0,
-        );
-        video.currentTime = proxy.time;
-        ScrollTrigger.refresh();
-      };
-
-      const prepare = async () => {
-        try {
-          const src = video.currentSrc || video.src;
-          const res = await fetch(src, { signal: ac.signal });
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          blobUrl = url;
-          await new Promise<void>((resolve) => {
-            const done = () => {
-              video.removeEventListener("loadeddata", done);
-              video.removeEventListener("canplay", done);
-              resolve();
-            };
-            video.addEventListener("loadeddata", done, { once: true });
-            video.addEventListener("canplay", done, { once: true });
-            video.src = url;
-            video.load();
-          });
-        } catch {
-          await waitReady();
-        }
-        video.pause();
-        attachScrub();
-      };
-
-      void prepare();
+      const scrub = prepareScrubVideo({
+        video,
+        src: pickVideoSrc(place.video.src, place.video.srcMobile),
+        timeline: tl,
+        scrubDuration: tl.duration(),
+        trigger: section,
+        start: "top bottom+=180%",
+        eager: true,
+      });
 
       const unlock = () => {
         void video
@@ -149,9 +93,8 @@ export function PlaceSection() {
       });
 
       return () => {
-        ac.abort();
+        scrub();
         window.removeEventListener("touchstart", unlock);
-        if (blobUrl) URL.revokeObjectURL(blobUrl);
       };
     },
     { scope: sectionRef },
@@ -200,10 +143,10 @@ export function PlaceSection() {
           <video
             ref={videoRef}
             className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-            src={VIDEO_SRC}
+            poster={place.video.poster}
             muted
             playsInline
-            preload="auto"
+            preload="none"
             aria-label={place.video.alt}
             disablePictureInPicture
             onLoadedMetadata={() => ScrollTrigger.refresh()}

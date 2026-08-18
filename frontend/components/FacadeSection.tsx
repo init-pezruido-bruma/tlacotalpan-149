@@ -6,10 +6,10 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { facade } from "../content";
 import { goToIsometric } from "../lib/goToTour";
+import { pickVideoSrc, prepareScrubVideo } from "../lib/scrubVideo";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-const VIDEO_SRC = encodeURI(facade.video.src);
 const VIDEO_W = 1920;
 const VIDEO_H = 1312;
 
@@ -88,81 +88,14 @@ export function FacadeSection() {
       tl.to(hotspots, { autoAlpha: 1, duration: 0.18 });
       tl.to({}, { duration: 0.5 });
 
-      const proxy = { time: 0 };
-      let blobUrl: string | undefined;
-      const ac = new AbortController();
-
-      const waitReady = () => {
-        if (video.readyState >= 2) return Promise.resolve();
-        return new Promise<void>((resolve) => {
-          const done = () => {
-            video.removeEventListener("loadeddata", done);
-            video.removeEventListener("canplay", done);
-            resolve();
-          };
-          video.addEventListener("loadeddata", done, { once: true });
-          video.addEventListener("canplay", done, { once: true });
-        });
-      };
-
-      const attachScrub = () => {
-        if (!Number.isFinite(video.duration) || video.duration <= 0) return;
-        tl.fromTo(
-          proxy,
-          { time: 0 },
-          {
-            time: video.duration,
-            duration: 1,
-            ease: "none",
-            onUpdate: () => {
-              if (section.dataset.tourLock === "1") return;
-              if (video.readyState >= 2) {
-                video.currentTime = proxy.time;
-              }
-            },
-          },
-          0,
-        );
-        video.currentTime =
-          section.dataset.tourLock === "1"
-            ? video.duration
-            : proxy.time;
-        ScrollTrigger.refresh();
-      };
-
-      const prepare = async () => {
-        try {
-          const src = video.currentSrc || video.src;
-          const res = await fetch(src, { signal: ac.signal });
-          const blob = await res.blob();
-          const url = URL.createObjectURL(blob);
-          blobUrl = url;
-          await new Promise<void>((resolve) => {
-            const done = () => {
-              video.removeEventListener("loadeddata", done);
-              video.removeEventListener("canplay", done);
-              resolve();
-            };
-            video.addEventListener("loadeddata", done, { once: true });
-            video.addEventListener("canplay", done, { once: true });
-            video.src = url;
-            video.load();
-          });
-        } catch {
-          await waitReady();
-        }
-        video.pause();
-        attachScrub();
-      };
-
-      const preload = ScrollTrigger.create({
+      const scrub = prepareScrubVideo({
+        video,
+        src: pickVideoSrc(facade.video.src, facade.video.srcMobile),
+        timeline: tl,
+        scrubDuration: 1,
+        isLocked: () => section.dataset.tourLock === "1",
         trigger: section,
-        start: "top bottom+=90%",
-        once: true,
-        onEnter: () => {
-          video.preload = "auto";
-          void prepare();
-        },
+        start: "top bottom+=120%",
       });
 
       const unlock = () => {
@@ -179,10 +112,8 @@ export function FacadeSection() {
       });
 
       return () => {
-        ac.abort();
-        preload.kill();
+        scrub();
         window.removeEventListener("touchstart", unlock);
-        if (blobUrl) URL.revokeObjectURL(blobUrl);
       };
     },
     { scope: sectionRef },
@@ -204,7 +135,6 @@ export function FacadeSection() {
         <video
           ref={videoRef}
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          src={VIDEO_SRC}
           poster={facade.video.poster}
           muted
           playsInline

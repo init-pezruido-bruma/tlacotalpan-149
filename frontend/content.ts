@@ -46,7 +46,9 @@ export const place = {
     "Ubicado en Roma Sur, Tlacotalpan 149 conecta con parques, espacios culturales, gastronomía, servicios y transporte, manteniendo la tranquilidad de una zona residencial.",
   ],
   video: {
-    src: "/videos/TL149_FC_FACHADA_DIANOCHE.mp4",
+    src: "/videos/TL149_FC_FACHADA_DIANOCHE-1920.mp4",
+    srcMobile: "/videos/TL149_FC_FACHADA_DIANOCHE-1280.mp4",
+    poster: "/videos/TL149_FC_FACHADA_DIANOCHE.jpg",
     alt: "Fachada de Tlacotalpan 149, de día a noche",
   },
 } as const;
@@ -141,8 +143,9 @@ export const isometric = {
 export const facade = {
   id: "fachada",
   video: {
-    src: "/videos/VIDEO_FINAL.mp4",
-    poster: "/videos/VIDEO_FINAL_last.jpg",
+    src: "/videos/VIDEO_FINAL-1600.mp4",
+    srcMobile: "/videos/VIDEO_FINAL-1280.mp4",
+    poster: "/videos/VIDEO_FINAL.jpg",
     alt: "Recorrido hacia la fachada de Tlacotalpan 149",
   },
   hotspots: [
