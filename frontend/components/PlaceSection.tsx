@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
@@ -9,21 +8,25 @@ import { place } from "../content";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
+const VIDEO_SRC = encodeURI(place.video.src);
+
 export function PlaceSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
-  const bodyRef = useRef<HTMLParagraphElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       const section = sectionRef.current;
       const frame = frameRef.current;
+      const video = videoRef.current;
       const title = titleRef.current;
       const subtitle = subtitleRef.current;
       const body = bodyRef.current;
-      if (!section || !frame || !title || !subtitle || !body) return;
+      if (!section || !frame || !video || !title || !subtitle || !body) return;
 
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
@@ -33,6 +36,9 @@ export function PlaceSection() {
       const endFrame = desktop
         ? { top: "10%", left: "54%", width: "42%", height: "80%" }
         : { top: "5%", left: "6%", width: "88%", height: "38%" };
+
+      video.pause();
+      video.muted = true;
 
       if (reduce) {
         gsap.set(frame, endFrame);
@@ -48,26 +54,105 @@ export function PlaceSection() {
         scrollTrigger: {
           trigger: section,
           start: "top top",
-          // Un poco más de recorrido: hold inicial + transición + hold final
-          end: "+=240%",
+          end: "+=280%",
           pin: true,
-          // Scrub directo: sin lag que deje el texto a medias al pasar a planos
           scrub: true,
-          fastScrollEnd: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
 
-      // Hold breve con la imagen full-bleed antes de encoger el frame
       const settle = 0.4;
       tl.to({}, { duration: settle });
       tl.to(frame, { ...endFrame, duration: 1 }, settle);
       tl.to(title, { autoAlpha: 1, y: 0, duration: 0.35 }, settle + 0.25);
       tl.to(subtitle, { autoAlpha: 1, y: 0, duration: 0.3 }, settle + 0.4);
       tl.to(body, { autoAlpha: 1, y: 0, duration: 0.35 }, settle + 0.55);
-      // Hold con composición final ya armada
       tl.to({}, { duration: 1.2 });
+
+      const proxy = { time: 0 };
+      let blobUrl: string | undefined;
+      const ac = new AbortController();
+
+      const waitReady = () => {
+        if (video.readyState >= 2) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          const done = () => {
+            video.removeEventListener("loadeddata", done);
+            video.removeEventListener("canplay", done);
+            resolve();
+          };
+          video.addEventListener("loadeddata", done, { once: true });
+          video.addEventListener("canplay", done, { once: true });
+        });
+      };
+
+      const attachScrub = () => {
+        if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+        tl.fromTo(
+          proxy,
+          { time: 0 },
+          {
+            time: video.duration,
+            duration: tl.duration(),
+            ease: "none",
+            onUpdate: () => {
+              if (video.readyState >= 2) {
+                video.currentTime = proxy.time;
+              }
+            },
+          },
+          0,
+        );
+        video.currentTime = proxy.time;
+        ScrollTrigger.refresh();
+      };
+
+      const prepare = async () => {
+        try {
+          const src = video.currentSrc || video.src;
+          const res = await fetch(src, { signal: ac.signal });
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          blobUrl = url;
+          await new Promise<void>((resolve) => {
+            const done = () => {
+              video.removeEventListener("loadeddata", done);
+              video.removeEventListener("canplay", done);
+              resolve();
+            };
+            video.addEventListener("loadeddata", done, { once: true });
+            video.addEventListener("canplay", done, { once: true });
+            video.src = url;
+            video.load();
+          });
+        } catch {
+          await waitReady();
+        }
+        video.pause();
+        attachScrub();
+      };
+
+      void prepare();
+
+      const unlock = () => {
+        void video
+          .play()
+          .then(() => {
+            video.pause();
+          })
+          .catch(() => {});
+      };
+      window.addEventListener("touchstart", unlock, {
+        once: true,
+        passive: true,
+      });
+
+      return () => {
+        ac.abort();
+        window.removeEventListener("touchstart", unlock);
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+      };
     },
     { scope: sectionRef },
   );
@@ -97,12 +182,14 @@ export function PlaceSection() {
             >
               {place.subtitle}
             </p>
-            <p
+            <div
               ref={bodyRef}
-              className="mt-8 max-w-sm text-[0.9rem] leading-[1.75] font-light text-place-ink md:mt-10 md:text-[0.95rem] md:leading-[1.8]"
+              className="mt-8 max-w-sm space-y-5 text-[0.9rem] leading-[1.75] font-light text-place-ink md:mt-10 md:text-[0.95rem] md:leading-[1.8]"
             >
-              {place.body}
-            </p>
+              {place.body.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -110,14 +197,16 @@ export function PlaceSection() {
           ref={frameRef}
           className="place-frame absolute top-0 left-0 z-20 h-full w-full overflow-hidden will-change-[top,left,width,height]"
         >
-          <Image
-            src={place.image.src}
-            alt={place.image.alt}
-            fill
-            priority
-            sizes="(max-width: 767px) 88vw, 42vw"
-            className="object-cover"
-            onLoad={() => ScrollTrigger.refresh()}
+          <video
+            ref={videoRef}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            src={VIDEO_SRC}
+            muted
+            playsInline
+            preload="auto"
+            aria-label={place.video.alt}
+            disablePictureInPicture
+            onLoadedMetadata={() => ScrollTrigger.refresh()}
           />
         </div>
       </div>

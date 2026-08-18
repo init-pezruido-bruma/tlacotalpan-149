@@ -23,11 +23,18 @@ export function PlansSection() {
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      const getScrollDistance = () =>
-        Math.max(0, track.scrollWidth - window.innerWidth);
+      const getEndGutter = () =>
+        parseFloat(getComputedStyle(track).paddingRight) || 20;
 
-      // Hold corto al inicio/fin
-      const getHold = () => Math.round(window.innerHeight * 0.18);
+      const getScrollDistance = () => {
+        const last = track.querySelector(".plans-item:last-child");
+        if (!(last instanceof HTMLElement)) return 0;
+        const currentX = Number(gsap.getProperty(track, "x")) || 0;
+        const lastRight = last.getBoundingClientRect().right - currentX;
+        return Math.max(0, lastRight - window.innerWidth + getEndGutter());
+      };
+
+      const getHold = () => Math.round(window.innerHeight * 0.12);
 
       if (reduce) {
         gsap.set(track, { x: 0 });
@@ -52,19 +59,18 @@ export function PlansSection() {
           scrollTrigger: {
             trigger: section,
             start: "top top",
-            end: () => `+=${getScrollDistance() + getHold() * 2}`,
+            end: () => `+=${getScrollDistance() + getHold()}`,
             pin: true,
             scrub: true,
             anticipatePin: 1,
             invalidateOnRefresh: true,
           },
         })
-        .to({}, { duration: 0.12 })
+        .to({}, { duration: 0.08 })
         .to(track, {
           x: () => -getScrollDistance(),
           duration: 1,
-        })
-        .to({}, { duration: 0.12 });
+        });
     },
     { scope: sectionRef },
   );
@@ -92,29 +98,30 @@ export function PlansSection() {
           <div
             ref={trackRef}
             className="plans-track flex items-start gap-20 will-change-transform md:gap-28"
-            style={{ paddingLeft: "max(1.25rem, calc((100% - var(--content)) / 2))", paddingRight: "20vw" }}
+            style={{
+              paddingLeft:
+                "max(1.25rem, calc((100% - var(--content)) / 2))",
+              paddingRight: "1.25rem",
+            }}
           >
             {plans.items.map((item) => (
               <article
                 key={item.src}
-                className="plans-item flex w-[min(72vw,520px)] shrink-0 flex-col md:w-[min(58vw,640px)]"
+                className="plans-item flex shrink-0 flex-col"
               >
-                <div className="relative flex h-[38vh] w-full items-end justify-start md:h-[42vh]">
+                <div className="relative flex h-[44vh] items-end justify-start md:h-[50vh]">
                   <Image
                     src={item.src}
                     alt={item.title}
                     width={item.width}
                     height={item.height}
-                    className="max-h-full w-auto max-w-full object-contain object-left-bottom"
-                    sizes="(max-width: 768px) 72vw, 58vw"
+                    className="h-full w-auto max-w-[var(--content)] object-contain object-left-bottom"
+                    sizes="var(--content)"
                   />
                 </div>
                 <h3 className="mt-8 text-[0.8rem] leading-snug font-medium tracking-[0.14em] text-plans-ink uppercase md:mt-10 md:text-[0.9rem]">
                   {item.title}
                 </h3>
-                <p className="mt-4 max-w-sm text-[0.8rem] leading-[1.7] font-light text-plans-ink/85 md:text-[0.85rem] md:leading-[1.75]">
-                  {item.body}
-                </p>
               </article>
             ))}
           </div>

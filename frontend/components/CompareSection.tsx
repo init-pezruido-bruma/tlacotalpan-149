@@ -6,17 +6,9 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { compare } from "../content";
+import { goToTour } from "../lib/goToTour";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
-
-function goToTour(unitId: string) {
-  const url = new URL(window.location.href);
-  url.searchParams.set("unit", unitId);
-  url.hash = "recorridos";
-  window.history.pushState({}, "", url.toString());
-  window.dispatchEvent(new PopStateEvent("popstate"));
-  document.getElementById("recorridos")?.scrollIntoView({ behavior: "smooth" });
-}
 
 export function CompareSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -69,52 +61,71 @@ export function CompareSection() {
       id={compare.id}
       className="compare-surface relative isolate overflow-hidden"
     >
-      <div className="flex h-[100svh] flex-col justify-center overflow-y-auto px-[max(1.25rem,calc((100%-var(--content))/2))] py-10 md:overflow-hidden md:py-12">
+      <div className="flex h-[100svh] flex-col justify-center overflow-y-auto px-[max(1.25rem,calc((100%-var(--content))/2))] py-6 md:overflow-hidden md:py-8">
         <h2 className="compare-title text-center text-[clamp(1.15rem,2.6vw,1.75rem)] font-medium tracking-[0.16em] text-compare-ink uppercase">
           {compare.title}
         </h2>
 
-        <div className="mt-10 grid min-h-0 flex-1 grid-cols-1 content-center gap-10 sm:mt-12 sm:grid-cols-2 sm:gap-0 lg:mt-14 lg:grid-cols-4 lg:content-center">
+        <div className="mt-6 grid min-h-0 flex-1 grid-cols-1 content-center gap-8 sm:mt-8 sm:grid-cols-2 sm:items-stretch sm:gap-0 lg:mt-10 lg:grid-cols-3">
           {compare.items.map((item, i) => (
             <article
               key={item.id}
               className={[
-                "compare-col flex flex-col items-center px-4 text-center sm:px-6 lg:px-5",
+                "compare-col flex min-h-0 flex-col items-center px-4 text-center sm:px-5 lg:px-4",
                 i > 0 ? "sm:border-l sm:border-compare-ink/20" : "",
               ].join(" ")}
             >
-              <div className="relative aspect-[5760/3652] w-full max-w-[200px] lg:max-w-[220px]">
-                <Image
-                  src={compare.image.src}
-                  alt={compare.image.alt}
-                  fill
-                  sizes="220px"
-                  className="object-contain"
-                  onLoad={() => ScrollTrigger.refresh()}
-                />
+              <div className="relative mx-auto aspect-[5760/3652] w-full max-w-[min(200px,24vw)] shrink-0 lg:max-w-[220px]">
+                {"images" in item ? (
+                  item.images.map((img, layerIndex) => (
+                    <div
+                      key={img.src}
+                      className="absolute inset-0 origin-bottom"
+                      style={{
+                        zIndex: layerIndex,
+                        transform: `translate(${img.stack.x}%, ${img.stack.y}%)`,
+                      }}
+                    >
+                      <Image
+                        src={img.src}
+                        alt={img.alt}
+                        fill
+                        sizes="220px"
+                        className="object-contain object-bottom"
+                        onLoad={() => ScrollTrigger.refresh()}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <Image
+                    src={item.image.src}
+                    alt={item.image.alt}
+                    fill
+                    sizes="220px"
+                    className="object-contain object-bottom"
+                    onLoad={() => ScrollTrigger.refresh()}
+                  />
+                )}
               </div>
 
-              <h3 className="mt-6 text-[0.8rem] font-medium tracking-[0.18em] text-compare-ink uppercase md:mt-8 md:text-[0.85rem]">
+              <h3 className="mt-4 text-[0.8rem] font-medium tracking-[0.18em] text-compare-ink uppercase md:text-[0.85rem]">
                 {item.title}
               </h3>
 
-              <ul className="mt-4 space-y-1.5 text-[0.75rem] leading-relaxed font-light text-compare-ink/75 md:mt-5 md:text-[0.8rem]">
+              <ul className="mt-3 flex-1 space-y-1 text-[0.72rem] leading-snug font-light text-compare-ink/75 md:text-[0.78rem]">
                 {item.features.map((line, idx) => (
                   <li key={`${item.id}-${idx}`}>{line}</li>
                 ))}
               </ul>
 
-              <div className="mt-6 flex w-full max-w-[11.5rem] flex-col gap-2.5 md:mt-8">
-                <a
-                  href={`/?unit=${encodeURIComponent(item.unitId)}#recorridos`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    goToTour(item.unitId);
-                  }}
-                  className="rounded-full border border-compare-ink/70 px-4 py-2 text-[0.65rem] tracking-[0.1em] text-compare-ink uppercase transition-colors hover:border-compare-ink hover:bg-compare-ink/5"
+              <div className="mt-4 flex w-full max-w-[11.5rem] shrink-0 flex-col gap-2 md:mt-5">
+                <button
+                  type="button"
+                  onClick={() => goToTour(item.unitId)}
+                  className="cursor-pointer rounded-full border border-compare-ink/70 px-4 py-2 text-[0.65rem] tracking-[0.1em] text-compare-ink uppercase transition-colors hover:border-compare-ink hover:bg-compare-ink/5"
                 >
                   {compare.tourCta}
-                </a>
+                </button>
                 <a
                   href={compare.visitHref}
                   className="rounded-full bg-[linear-gradient(105deg,var(--hero-green-mid),var(--hero-green-deep))] px-4 py-2 text-[0.65rem] tracking-[0.1em] text-hero-ink uppercase transition-opacity hover:opacity-90"

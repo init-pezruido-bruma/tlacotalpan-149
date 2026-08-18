@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { contact, footer } from "../content";
 
 export function ContactSection() {
@@ -43,12 +44,12 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <a
+        <Link
           href={footer.privacy.href}
           className="shrink-0 self-start text-[0.8rem] text-hero-ink/85 underline decoration-hero-ink/35 underline-offset-[5px] transition-[text-decoration-color,color] hover:text-hero-ink hover:decoration-hero-ink/70 md:self-end md:text-[0.85rem]"
         >
           {footer.privacy.label}
-        </a>
+        </Link>
       </div>
     </footer>
   );

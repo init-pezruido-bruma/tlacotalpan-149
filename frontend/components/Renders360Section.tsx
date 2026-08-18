@@ -7,6 +7,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { panoramas } from "../content";
+import { TOUR_EVENT, type TourEventDetail } from "../lib/goToTour";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -24,15 +25,15 @@ const PanoramaCanvas = dynamic(
 type Space = {
   id: string;
   title: string;
-  body: string;
   src: string;
+  yaw?: number;
 };
 
 type Sheet = {
   title: string;
-  summary: string;
+  summary: readonly string[];
   stats: readonly { label: string; value: string }[];
-  body: string;
+  highlights: readonly string[];
   cta: { label: string; href: string };
   plan: {
     src: string;
@@ -99,21 +100,30 @@ export function Renders360Section() {
   }, []);
 
   useEffect(() => {
-    const applyUnitFromUrl = () => {
-      const params = new URLSearchParams(window.location.search);
-      const fromUrl = params.get("unit");
-      if (!fromUrl) return;
-      const match = units.find((u) => u.id === fromUrl);
+    const applyUnit = (unitKey: string | null) => {
+      if (!unitKey) return;
+      const match = units.find((u) => u.id === unitKey);
       if (!match) return;
       setUnitId(match.id);
       setSpaceIndex(0);
       setSpaceId(match.spaces[0]?.id ?? null);
+      setActive(true);
+    };
+
+    const applyUnitFromUrl = () => {
+      applyUnit(new URLSearchParams(window.location.search).get("unit"));
+    };
+
+    const onTour = (event: Event) => {
+      applyUnit((event as CustomEvent<TourEventDetail>).detail?.unitId ?? null);
     };
 
     applyUnitFromUrl();
+    window.addEventListener(TOUR_EVENT, onTour);
     window.addEventListener("hashchange", applyUnitFromUrl);
     window.addEventListener("popstate", applyUnitFromUrl);
     return () => {
+      window.removeEventListener(TOUR_EVENT, onTour);
       window.removeEventListener("hashchange", applyUnitFromUrl);
       window.removeEventListener("popstate", applyUnitFromUrl);
     };
@@ -154,6 +164,7 @@ export function Renders360Section() {
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
+          id: "recorridos",
           trigger: section,
           start: "top top",
           end: "+=320%",
@@ -237,7 +248,7 @@ export function Renders360Section() {
         className={`absolute inset-0 will-change-[filter] ${sheetMode ? "pointer-events-none" : ""}`}
       >
         {active ? (
-          <PanoramaCanvas src={space.src} />
+          <PanoramaCanvas src={space.src} yaw={space.yaw} />
         ) : (
           <div className="absolute inset-0 bg-[#0c0e0a]" aria-hidden />
         )}
@@ -268,9 +279,6 @@ export function Renders360Section() {
           <h2 className="text-[clamp(1.15rem,2.4vw,1.65rem)] leading-tight font-medium tracking-[0.14em] text-white uppercase">
             {space.title}
           </h2>
-          <p className="mt-4 max-w-xs text-[0.8rem] leading-[1.7] font-light text-white/80 md:text-[0.85rem]">
-            {space.body}
-          </p>
         </div>
 
         {spaces.length > 1 && prev && next && (
@@ -336,9 +344,11 @@ export function Renders360Section() {
               <h2 className="text-[clamp(1.35rem,2.8vw,2rem)] leading-tight font-medium tracking-[0.12em] uppercase">
                 {sheet.title}
               </h2>
-              <p className="mt-3 text-[0.72rem] leading-[1.55] font-light tracking-[0.04em] text-white/75 md:text-[0.8rem]">
-                {sheet.summary}
-              </p>
+              <div className="mt-3 space-y-1 text-[0.72rem] leading-[1.55] font-light tracking-[0.04em] text-white/75 md:text-[0.8rem]">
+                {sheet.summary.map((line, idx) => (
+                  <p key={`${sheet.title}-summary-${idx}`}>{line}</p>
+                ))}
+              </div>
 
               <dl className="mt-8 grid grid-cols-3 gap-3 border-t border-white/25 pt-5 md:mt-10 md:gap-5">
                 {sheet.stats.map((stat) => (
@@ -353,9 +363,11 @@ export function Renders360Section() {
                 ))}
               </dl>
 
-              <p className="mt-6 max-w-sm text-[0.8rem] leading-[1.7] font-light text-white/80 md:mt-8 md:text-[0.85rem]">
-                {sheet.body}
-              </p>
+              <ul className="mt-6 space-y-1 text-[0.72rem] leading-snug font-light text-white/80 md:mt-8 md:text-[0.78rem]">
+                {sheet.highlights.map((line, idx) => (
+                  <li key={`${sheet.title}-highlight-${idx}`}>- {line}</li>
+                ))}
+              </ul>
 
               <a
                 href={sheet.cta.href}
