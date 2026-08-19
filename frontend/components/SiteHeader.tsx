@@ -7,6 +7,9 @@ import { nav } from "../content";
 export function SiteHeader() {
   return (
     <header className="pointer-events-none absolute inset-x-0 top-0 z-20">
+      <a href="#contenido-principal" className="skip-link pointer-events-auto">
+        Saltar al contenido
+      </a>
       <nav
         aria-label="Principal"
         className="sr-only"

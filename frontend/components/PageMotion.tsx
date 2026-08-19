@@ -12,6 +12,10 @@ export function PageMotion({ children }: { children: React.ReactNode }) {
 
   useGSAP(
     () => {
+      ScrollTrigger.config({
+        autoRefreshEvents: "visibilitychange,resize",
+      });
+
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;

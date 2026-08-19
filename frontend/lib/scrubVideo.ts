@@ -1,4 +1,5 @@
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollRefresh } from "./scrollRefresh";
 
 type ScrubTimeline = {
   fromTo: (
@@ -112,7 +113,7 @@ export function prepareScrubVideo({
     );
     target = proxy.time;
     apply();
-    ScrollTrigger.refresh();
+    scheduleScrollRefresh();
   };
 
   const begin = () => {
@@ -126,6 +127,7 @@ export function prepareScrubVideo({
   };
 
   video.addEventListener("loadedmetadata", attach);
+  video.addEventListener("loadeddata", attach);
   video.addEventListener("durationchange", attach);
   video.addEventListener("progress", apply);
   video.addEventListener("canplay", apply);
@@ -153,6 +155,7 @@ export function prepareScrubVideo({
     window.cancelIdleCallback?.(idleCallback);
     preload.kill();
     video.removeEventListener("loadedmetadata", attach);
+    video.removeEventListener("loadeddata", attach);
     video.removeEventListener("durationchange", attach);
     video.removeEventListener("progress", apply);
     video.removeEventListener("canplay", apply);

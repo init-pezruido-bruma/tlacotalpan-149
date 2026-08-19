@@ -1,6 +1,13 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, useTexture } from "@react-three/drei";
 import * as THREE from "three";
@@ -16,10 +23,16 @@ function cameraPosition(yaw: number): [number, number, number] {
   ];
 }
 
+function isMobileViewport() {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(max-width: 767px)").matches;
+}
+
 type PanoramaCanvasProps = {
   src: string;
   /** Azimut en radianes. 0 mira a -Z (centro-derecha de la textura equirectangular). */
   yaw?: number;
+  interactionEnabled?: boolean;
 };
 
 function Dome({
@@ -29,25 +42,41 @@ function Dome({
   src: string;
   onReady: () => void;
 }) {
-  const map = useTexture(encodeURI(src));
   const gl = useThree((s) => s.gl);
+  const mobile = isMobileViewport();
+  const texture = useTexture(encodeURI(src), (loaded) => {
+    loaded.colorSpace = THREE.SRGBColorSpace;
+    loaded.anisotropy = Math.min(
+      mobile ? 4 : 8,
+      gl.capabilities.getMaxAnisotropy(),
+    );
+    loaded.needsUpdate = true;
+  });
 
   useLayoutEffect(() => {
-    map.colorSpace = THREE.SRGBColorSpace;
-    map.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
-    map.needsUpdate = true;
     onReady();
-  }, [map, gl, onReady]);
+  }, [onReady, texture]);
+
+  const segments = mobile ? 32 : 64;
+  const rings = mobile ? 24 : 48;
 
   return (
     <mesh scale={[-1, 1, 1]}>
-      <sphereGeometry args={[500, 64, 48]} />
-      <meshBasicMaterial map={map} side={THREE.BackSide} />
+      <sphereGeometry args={[500, segments, rings]} />
+      <meshBasicMaterial map={texture} side={THREE.BackSide} />
     </mesh>
   );
 }
 
-function PanoControls({ src, yaw }: { src: string; yaw: number }) {
+function PanoControls({
+  src,
+  yaw,
+  interactionEnabled,
+}: {
+  src: string;
+  yaw: number;
+  interactionEnabled: boolean;
+}) {
   const camera = useThree((s) => s.camera);
   const controlsRef = useRef<OrbitControlsImpl>(null);
 
@@ -66,7 +95,8 @@ function PanoControls({ src, yaw }: { src: string; yaw: number }) {
       ref={controlsRef}
       enableZoom={false}
       enablePan={false}
-      enableDamping
+      enableRotate={interactionEnabled}
+      enableDamping={interactionEnabled}
       dampingFactor={0.06}
       rotateSpeed={-0.45}
       minPolarAngle={0.35}
@@ -75,19 +105,45 @@ function PanoControls({ src, yaw }: { src: string; yaw: number }) {
   );
 }
 
-export function PanoramaCanvas({ src, yaw = 0 }: PanoramaCanvasProps) {
-  const [ready, setReady] = useState(false);
-  const markReady = useCallback(() => setReady(true), []);
+function WebGLContextGuard() {
+  const gl = useThree((s) => s.gl);
+  const invalidate = useThree((s) => s.invalidate);
 
   useEffect(() => {
-    setReady(false);
-  }, [src]);
+    const canvas = gl.domElement;
+    const onLost = (event: Event) => {
+      event.preventDefault();
+    };
+    const onRestored = () => {
+      invalidate();
+    };
+
+    canvas.addEventListener("webglcontextlost", onLost);
+    canvas.addEventListener("webglcontextrestored", onRestored);
+    return () => {
+      canvas.removeEventListener("webglcontextlost", onLost);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
+    };
+  }, [gl, invalidate]);
+
+  return null;
+}
+
+export function PanoramaCanvas({
+  src,
+  yaw = 0,
+  interactionEnabled = true,
+}: PanoramaCanvasProps) {
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const mobile = isMobileViewport();
+  const ready = loadedSrc === src;
+  const markReady = useCallback(() => setLoadedSrc(src), [src]);
 
   return (
     <div className="absolute inset-0">
       {!ready && (
         <div
-          className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#0c0e0a]/80"
+          className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-[#0c0e0a]"
           aria-hidden
         >
           <p className="text-[0.7rem] tracking-[0.18em] text-white/55 uppercase">
@@ -96,25 +152,31 @@ export function PanoramaCanvas({ src, yaw = 0 }: PanoramaCanvasProps) {
         </div>
       )}
       <Canvas
-        className="h-full w-full touch-none"
+        className="h-full w-full touch-pan-y"
         camera={{
           fov: 75,
           near: 0.1,
           far: 1000,
           position: cameraPosition(yaw),
         }}
+        frameloop={interactionEnabled ? "always" : "demand"}
         gl={{
-          antialias: true,
+          antialias: !mobile,
           alpha: false,
-          powerPreference: "high-performance",
+          powerPreference: mobile ? "default" : "high-performance",
         }}
-        dpr={[1, 1.75]}
+        dpr={mobile ? 1 : [1, 1.75]}
       >
         <color attach="background" args={["#0c0e0a"]} />
+        <WebGLContextGuard />
         <Suspense fallback={null}>
           <Dome key={src} src={src} onReady={markReady} />
         </Suspense>
-        <PanoControls src={src} yaw={yaw} />
+        <PanoControls
+          src={src}
+          yaw={yaw}
+          interactionEnabled={interactionEnabled}
+        />
       </Canvas>
     </div>
   );

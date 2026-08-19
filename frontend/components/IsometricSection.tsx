@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollRefresh } from "../lib/scrollRefresh";
 import { unitIsometrics } from "../content";
 import {
   goToTour,
@@ -87,7 +88,7 @@ function IsometricVisual({ unit }: { unit: Unit }) {
           sizes="(max-width: 768px) 88vw, 52vw"
           className="object-contain object-bottom"
           priority
-          onLoad={() => ScrollTrigger.refresh()}
+          onLoad={scheduleScrollRefresh}
         />
       ) : unit.images ? (
         unit.images.map((img, layerIndex) => (
@@ -105,7 +106,7 @@ function IsometricVisual({ unit }: { unit: Unit }) {
               fill
               sizes="(max-width: 768px) 88vw, 52vw"
               className="object-contain object-bottom"
-              onLoad={() => ScrollTrigger.refresh()}
+              onLoad={scheduleScrollRefresh}
             />
           </div>
         ))

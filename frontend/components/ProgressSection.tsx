@@ -26,6 +26,7 @@ export function ProgressSection() {
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
+      const desktop = window.matchMedia("(min-width: 768px)").matches;
 
       const targetOffset =
         CIRCUMFERENCE * (1 - progress.percent / 100);
@@ -47,8 +48,8 @@ export function ProgressSection() {
           scrollTrigger: {
             trigger: section,
             start: "top top",
-            end: "+=120%",
-            pin: true,
+            end: desktop ? "+=120%" : "+=40%",
+            pin: desktop,
             scrub: true,
             anticipatePin: 1,
           },
@@ -78,8 +79,8 @@ export function ProgressSection() {
     >
       <div className="progress-grain" aria-hidden />
 
-      <div className="relative z-10 flex h-[100svh] items-center justify-center px-6">
-        <div className="flex items-center gap-6 md:gap-12 lg:gap-16">
+      <div className="relative z-10 flex min-h-[100svh] items-center justify-center px-6 py-12">
+        <div className="flex flex-col items-center gap-5 text-center md:flex-row md:gap-12 lg:gap-16">
           <p className="text-[0.65rem] font-medium tracking-[0.28em] text-plans-ink uppercase md:text-xs">
             {progress.left}
           </p>

@@ -4,6 +4,7 @@ import Image from "next/image";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollRefresh } from "../lib/scrollRefresh";
 import { useRef } from "react";
 import { spaces } from "../content";
 
@@ -90,7 +91,7 @@ export function SpacesSection() {
             fill
             sizes="(max-width: 768px) 100vw, 58vw"
             className="object-cover"
-            onLoad={() => ScrollTrigger.refresh()}
+            onLoad={scheduleScrollRefresh}
           />
         </div>
       </div>

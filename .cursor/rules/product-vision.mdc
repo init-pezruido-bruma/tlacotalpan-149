@@ -12,12 +12,15 @@ Sitio de presentación de proyectos inmobiliarios. El pitch principal vive en **
 - Primero viewport = una composición: marca/proyecto, un headline, una frase, CTA, imagen dominante a full-bleed.
 - Cada sección = un propósito, un headline, una frase de apoyo. Sin dashboards, stats strips ni cards decorativas.
 - El recorrido se cuenta con scroll (pin/scrub), no con menús profundos ni páginas satélite para el contenido core.
+- Toda sección debe seguir funcionando en pantallas pequeñas sin solapes, recortes accidentales ni contenido inaccesible por overflow.
+- Las experiencias inmersivas (360, video, scroll pin) siempre deben ofrecer una salida clara para retomar el scroll normal.
 
 ## Contenido
 
 - Copy claro y concreto (beneficios del inmueble, no jerga de marketing vacía).
 - Imágenes reales del lugar/proyecto como ancla visual; no sustituir con solo gradientes abstractos.
 - Español por defecto en UI y copy salvo que se pida otro idioma.
+- Accesibilidad base WCAG AA por defecto: headings claros, controles etiquetados, foco visible y navegación usable con teclado/touch.
 
 ## Fuera de alcance (por ahora)
 

@@ -23,28 +23,28 @@ export function Hero() {
           width={2000}
           height={1294}
           priority
-          sizes="220vw"
-          className="absolute top-0 right-0 h-auto w-[min(200vw,2400px)] max-w-none opacity-[0.92]"
-          style={{ transform: "translate(38%, -18%)" }}
+          sizes="(max-width: 767px) 220vw, 160vw"
+          className="absolute top-0 right-0 h-auto w-[min(220vw,2400px)] max-w-none opacity-[0.92] md:w-[min(200vw,2400px)]"
+          style={{ transform: "translate(40%, -10%)" }}
         />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-[var(--content)] flex-col pt-9 pb-10 md:pt-11 md:pb-12">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-[var(--content)] flex-col pt-16 pb-10 md:pt-11 md:pb-12">
         <p className="hero-brand text-[0.68rem] font-medium tracking-[0.3em] text-hero-ink uppercase md:text-[0.75rem]">
           {hero.location}
         </p>
 
-        <div className="mt-auto max-w-3xl">
+        <div className="mt-auto max-w-3xl pb-2 md:pb-0">
           <h1 className="hero-headline text-[clamp(2.4rem,7vw,4.85rem)] leading-[1.04] font-medium tracking-[0.035em] text-hero-ink uppercase">
             {hero.brand}
           </h1>
-          <p className="hero-support mt-4 max-w-[22rem] text-[0.95rem] leading-relaxed font-light text-hero-ink/90 md:mt-5 md:max-w-md md:text-base">
+          <p className="hero-support mt-4 max-w-[22rem] text-[0.92rem] leading-relaxed font-light text-hero-ink/90 md:mt-5 md:max-w-md md:text-base">
             {hero.support}
           </p>
           <div className="hero-cta mt-8 md:mt-10">
             <a
               href={hero.cta.href}
-              className="inline-flex items-center gap-2.5 text-[0.68rem] font-medium tracking-[0.26em] text-hero-ink uppercase transition-opacity hover:opacity-70 md:text-[0.75rem]"
+              className="inline-flex min-h-11 items-center gap-2.5 rounded-full px-1 text-[0.68rem] font-medium tracking-[0.26em] text-hero-ink uppercase transition-opacity hover:opacity-70 md:text-[0.75rem]"
             >
               {hero.cta.label}
               <span

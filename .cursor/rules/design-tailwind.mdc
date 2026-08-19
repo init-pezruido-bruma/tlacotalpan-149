@@ -14,6 +14,9 @@ Estética limpia, editorial y espacial. Priorizar tipografía, whitespace e imag
 - Sin overlays flotantes en el hero (badges, chips, stickers).
 - Cards solo si envuelven una interacción real; si el borde/sombra no aporta, quitarlos.
 - Mobile-first; revisar que tipografía y CTAs respiren en viewport estrecho.
+- Diseñar desde 320px hacia arriba. Nada debe empalmarse ni depender de hover para ser usable.
+- Targets táctiles de al menos ~44px y spacing suficiente para evitar taps accidentales.
+- Si una sección usa altura fija o `100svh`, prever fallback/overflow seguro para teclado móvil, barras del navegador y contenido más alto.
 
 ## Tailwind
 
@@ -31,3 +34,4 @@ Estética limpia, editorial y espacial. Priorizar tipografía, whitespace e imag
 
 - GSAP para presencia y jerarquía (2–3 beats intencionales por sección clave), no ruido.
 - Respetar `prefers-reduced-motion`: atenuar o desactivar scrub/pin elaborados.
+- En mobile, priorizar legibilidad y control sobre espectacularidad: reducir pins largos, overlays invasivos y controles pegados al borde.

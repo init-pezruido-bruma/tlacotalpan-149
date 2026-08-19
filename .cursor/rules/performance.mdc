@@ -25,9 +25,12 @@ La página debe sentirse instantánea en móvil. Cada dependencia y animación s
 - Animar solo `transform` y `opacity`. Evitar animar `width`/`height`/`top`/`left`.
 - Un ScrollTrigger por beat narrativo; no apilar triggers redundantes.
 - Tras cambios de layout/fuentes/imágenes: `ScrollTrigger.refresh()`.
+- En mobile, preferir recorridos de scroll más cortos y degradaciones nativas (scroll horizontal, contenido apilado) antes que forzar pines largos.
+- Video scrub debe degradar bien con red lenta, metadata tardía y `prefers-reduced-motion`.
 
 ## Checklist antes de merge
 
 - LCP image definida y optimizada
 - Sin JS muerto ni imports de GSAP en el árbol servidor innecesario
 - `prefers-reduced-motion` contemplado
+- Revisado en viewport estrecho sin overflow horizontal ni solapes

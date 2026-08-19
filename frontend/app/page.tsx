@@ -1,5 +1,5 @@
 import { CompareSection } from "../components/CompareSection";
-import { ContactSection, SiteFooter } from "../components/ContactSection";
+import { SiteFooter } from "../components/ContactSection";
 import { FacadeSection } from "../components/FacadeSection";
 import { Hero } from "../components/Hero";
 import { IntroSection } from "../components/IntroSection";
@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <PageMotion>
       <SiteHeader />
-      <main>
+      <main id="contenido-principal">
         <Hero />
         <IntroSection />
         <PlaceSection />

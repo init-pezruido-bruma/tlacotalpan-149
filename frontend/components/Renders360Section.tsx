@@ -6,8 +6,13 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollRefresh } from "../lib/scrollRefresh";
 import { panoramas } from "../content";
-import { TOUR_EVENT, type TourEventDetail } from "../lib/goToTour";
+import {
+  exitTourToCompare,
+  TOUR_EVENT,
+  type TourEventDetail,
+} from "../lib/goToTour";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -98,6 +103,19 @@ export function Renders360Section() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (sheetMode) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      exitTourToCompare();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [sheetMode]);
 
   useEffect(() => {
     const applyUnit = (unitKey: string | null) => {
@@ -248,7 +266,11 @@ export function Renders360Section() {
         className={`absolute inset-0 will-change-[filter] ${sheetMode ? "pointer-events-none" : ""}`}
       >
         {active ? (
-          <PanoramaCanvas src={space.src} yaw={space.yaw} />
+          <PanoramaCanvas
+            src={space.src}
+            yaw={space.yaw}
+            interactionEnabled={!sheetMode}
+          />
         ) : (
           <div className="absolute inset-0 bg-[#0c0e0a]" aria-hidden />
         )}
@@ -275,10 +297,25 @@ export function Renders360Section() {
 
       {/* UI recorrido 360 */}
       <div ref={tourUiRef} className="pointer-events-none absolute inset-0 z-10">
-        <div className="absolute top-0 left-0 max-w-[min(22rem,70vw)] px-5 pt-24 md:px-8 md:pt-28">
+        <div className="absolute top-0 left-0 max-w-[min(24rem,calc(100vw-2.5rem))] px-5 pt-24 md:max-w-[min(22rem,70vw)] md:px-8 md:pt-28">
           <h2 className="text-[clamp(1.15rem,2.4vw,1.65rem)] leading-tight font-medium tracking-[0.14em] text-white uppercase">
             {space.title}
           </h2>
+          <p className="mt-3 max-w-[18rem] text-[0.72rem] leading-relaxed tracking-[0.08em] text-white/78 md:text-[0.78rem]">
+            Arrastra para explorar. Usa salir para recuperar el scroll.
+          </p>
+        </div>
+
+        <div className="absolute top-5 right-5 md:top-7 md:right-7">
+          <button
+            type="button"
+            onClick={exitTourToCompare}
+            className="pointer-events-auto inline-flex min-h-11 items-center rounded-full border border-white/70 bg-black/18 px-4 py-2 text-[0.68rem] font-medium tracking-[0.14em] text-white uppercase backdrop-blur-sm transition-colors hover:border-white hover:bg-black/28 md:text-[0.72rem]"
+            aria-label="Salir del recorrido 360 y volver al scroll"
+            tabIndex={sheetMode ? -1 : 0}
+          >
+            Salir del render
+          </button>
         </div>
 
         {spaces.length > 1 && prev && next && (
@@ -286,11 +323,11 @@ export function Renders360Section() {
             <button
               type="button"
               onClick={() => goSpace(index - 1)}
-              className="pointer-events-auto absolute top-1/2 left-2 flex -translate-y-1/2 flex-col items-center gap-2 px-1 py-3 text-white/90 transition-opacity hover:opacity-100 md:left-4"
+              className="pointer-events-auto absolute left-3 bottom-26 flex min-h-11 items-center gap-2 rounded-full border border-white/35 bg-black/18 px-3 py-2 text-left text-white/95 backdrop-blur-sm transition-colors hover:border-white hover:bg-black/28 md:top-1/2 md:bottom-auto md:left-4 md:-translate-y-1/2 md:flex-col md:items-center md:gap-2 md:border-transparent md:bg-transparent md:px-2 md:py-3"
               aria-label={`Ir a ${prev.title}`}
               tabIndex={sheetMode ? -1 : 0}
             >
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[0.7rem] font-medium tracking-[0.22em] uppercase md:text-xs">
+              <span className="text-[0.66rem] font-medium tracking-[0.16em] uppercase md:[writing-mode:vertical-rl] md:rotate-180 md:text-xs">
                 {prev.title}
               </span>
               <ChevronSide direction="prev" />
@@ -299,11 +336,11 @@ export function Renders360Section() {
             <button
               type="button"
               onClick={() => goSpace(index + 1)}
-              className="pointer-events-auto absolute top-1/2 right-2 flex -translate-y-1/2 flex-col items-center gap-2 px-1 py-3 text-white/90 transition-opacity hover:opacity-100 md:right-4"
+              className="pointer-events-auto absolute right-3 bottom-26 flex min-h-11 items-center gap-2 rounded-full border border-white/35 bg-black/18 px-3 py-2 text-right text-white/95 backdrop-blur-sm transition-colors hover:border-white hover:bg-black/28 md:top-1/2 md:bottom-auto md:right-4 md:-translate-y-1/2 md:flex-col md:items-center md:gap-2 md:border-transparent md:bg-transparent md:px-2 md:py-3"
               aria-label={`Ir a ${next.title}`}
               tabIndex={sheetMode ? -1 : 0}
             >
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[0.7rem] font-medium tracking-[0.22em] uppercase md:text-xs">
+              <span className="text-[0.66rem] font-medium tracking-[0.16em] uppercase md:[writing-mode:vertical-rl] md:rotate-180 md:text-xs">
                 {next.title}
               </span>
               <ChevronSide direction="next" />
@@ -318,10 +355,10 @@ export function Renders360Section() {
         className={`absolute inset-0 z-20 ${sheetMode ? "" : "pointer-events-none"}`}
         aria-hidden={!sheetMode}
       >
-        <div className="flex h-full flex-col justify-center px-5 pt-10 pb-24 md:px-10 md:pt-6 md:pb-16 lg:px-14">
-          <div className="mx-auto flex h-full w-full max-w-6xl flex-col items-center gap-6 md:flex-row md:items-center md:justify-center md:gap-10 lg:gap-14">
+        <div className="flex h-full flex-col overflow-y-auto px-5 pt-18 pb-28 md:justify-center md:overflow-hidden md:px-10 md:pt-6 md:pb-16 lg:px-14">
+          <div className="mx-auto flex w-full max-w-6xl flex-col items-center gap-8 md:h-full md:flex-row md:items-center md:justify-center md:gap-10 lg:gap-14">
             <div
-              className="relative h-[min(72svh,560px)] w-[calc(min(72svh,560px)*var(--ph)/var(--pw))] shrink-0 md:h-[80svh] md:w-[calc(80svh*var(--ph)/var(--pw))]"
+              className="relative h-[min(48svh,420px)] w-[calc(min(48svh,420px)*var(--ph)/var(--pw))] shrink-0 md:h-[80svh] md:w-[calc(80svh*var(--ph)/var(--pw))]"
               style={
                 {
                   "--pw": sheet.plan.width,
@@ -334,9 +371,9 @@ export function Renders360Section() {
                 alt={sheet.plan.alt}
                 width={sheet.plan.width}
                 height={sheet.plan.height}
-                className="absolute top-1/2 left-1/2 h-auto w-[min(72svh,560px)] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90 object-contain brightness-0 invert md:w-[80svh]"
+                className="absolute top-1/2 left-1/2 h-auto w-[min(48svh,420px)] max-w-none -translate-x-1/2 -translate-y-1/2 rotate-90 object-contain brightness-0 invert md:w-[80svh]"
                 sizes="80vh"
-                onLoad={() => ScrollTrigger.refresh()}
+                onLoad={scheduleScrollRefresh}
               />
             </div>
 
@@ -371,7 +408,7 @@ export function Renders360Section() {
 
               <a
                 href={sheet.cta.href}
-                className="mt-7 inline-flex rounded-full border border-white/80 px-5 py-2 text-[0.7rem] tracking-[0.12em] text-white uppercase transition-colors hover:border-white hover:bg-white/10 md:mt-8 md:text-xs"
+                className="mt-7 inline-flex min-h-11 items-center rounded-full border border-white/80 px-5 py-2 text-[0.7rem] tracking-[0.12em] text-white uppercase transition-colors hover:border-white hover:bg-white/10 md:mt-8 md:text-xs"
                 tabIndex={sheetMode ? 0 : -1}
               >
                 {sheet.cta.label}
@@ -391,7 +428,7 @@ export function Renders360Section() {
       <a
         ref={compareRef}
         href={panoramas.compare.href}
-        className="absolute bottom-7 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-1 text-white/75 transition-opacity hover:text-white"
+        className="absolute bottom-7 left-1/2 z-30 flex min-h-11 -translate-x-1/2 flex-col items-center justify-center gap-1 rounded-full px-3 text-white/75 transition-opacity hover:text-white"
         tabIndex={sheetMode ? 0 : -1}
       >
         <span className="text-[0.65rem] tracking-[0.28em] uppercase md:text-[0.7rem]">
@@ -424,7 +461,7 @@ export function Renders360Section() {
               type="button"
               onClick={() => selectUnit(u)}
               className={[
-                "rounded-full border px-4 py-1.5 text-[0.7rem] tracking-[0.08em] transition-colors md:text-xs",
+                "min-h-11 rounded-full border px-4 py-1.5 text-[0.7rem] tracking-[0.08em] transition-colors md:text-xs",
                 selected
                   ? "border-white bg-white/15 text-white"
                   : "border-white/70 text-white/90 hover:border-white hover:bg-white/10",

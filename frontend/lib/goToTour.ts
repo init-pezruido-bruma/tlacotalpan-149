@@ -149,3 +149,7 @@ export function goToTour(unitId: string) {
     }
   });
 }
+
+export function exitTourToCompare() {
+  jumpToSection(UNIT_SECTION_ID, 1);
+}

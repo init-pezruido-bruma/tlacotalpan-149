@@ -36,3 +36,5 @@ useGSAP(() => {
 
 - Respetar `prefers-reduced-motion`: saltar pin/scrub o usar fades mínimos.
 - Solo `transform` / `opacity`. Llamar `ScrollTrigger.refresh()` tras cargar media que cambie altura.
+- Ajustar `end`/duración de pines para mobile; evitar tramos demasiado largos que hagan sentir al usuario atrapado.
+- Toda UI interactiva dentro de una sección pineada debe seguir siendo usable en touch, con foco visible y salida explícita si captura gesto.

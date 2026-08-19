@@ -5,6 +5,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollRefresh } from "../lib/scrollRefresh";
 import { plans } from "../content";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -22,6 +23,7 @@ export function PlansSection() {
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
+      const desktop = window.matchMedia("(min-width: 768px)").matches;
 
       const getEndGutter = () =>
         parseFloat(getComputedStyle(track).paddingRight) || 20;
@@ -36,7 +38,7 @@ export function PlansSection() {
 
       const getHold = () => Math.round(window.innerHeight * 0.12);
 
-      if (reduce) {
+      if (reduce || !desktop) {
         gsap.set(track, { x: 0 });
         return;
       }
@@ -51,7 +53,7 @@ export function PlansSection() {
                 img.addEventListener("error", () => resolve(), { once: true });
               }),
         ),
-      ).then(() => ScrollTrigger.refresh());
+      ).then(() => scheduleScrollRefresh());
 
       gsap
         .timeline({
@@ -83,8 +85,8 @@ export function PlansSection() {
     >
       <div className="plans-grain" aria-hidden />
 
-      <div className="relative flex h-[100svh] flex-col">
-        <header className="relative z-10 flex shrink-0 items-end justify-between gap-6 px-[max(1.25rem,calc((100%-var(--content))/2))] pt-10 pb-5 md:pt-12 md:pb-6">
+      <div className="relative flex min-h-[100svh] flex-col">
+        <header className="relative z-10 flex shrink-0 flex-col items-start justify-between gap-2 px-[max(1.25rem,calc((100%-var(--content))/2))] pt-10 pb-5 md:flex-row md:items-end md:gap-6 md:pt-12 md:pb-6">
           <h2 className="text-[0.7rem] font-medium tracking-[0.28em] text-plans-ink uppercase md:text-xs">
             {plans.eyebrow}
           </h2>
@@ -94,10 +96,10 @@ export function PlansSection() {
         </header>
         <div className="mx-[max(1.25rem,calc((100%-var(--content))/2))] h-px shrink-0 bg-plans-ink/25" />
 
-        <div className="relative flex min-h-0 flex-1 items-center">
+        <div className="relative flex min-h-0 flex-1 items-center overflow-x-auto pb-4 md:overflow-hidden md:pb-0">
           <div
             ref={trackRef}
-            className="plans-track flex items-start gap-20 will-change-transform md:gap-28"
+            className="plans-track flex items-start gap-10 pr-5 will-change-transform snap-x snap-mandatory md:gap-28 md:pr-0 md:snap-none"
             style={{
               paddingLeft:
                 "max(1.25rem, calc((100% - var(--content)) / 2))",
@@ -107,9 +109,9 @@ export function PlansSection() {
             {plans.items.map((item) => (
               <article
                 key={item.src}
-                className="plans-item flex shrink-0 flex-col"
+                className="plans-item flex shrink-0 snap-start flex-col"
               >
-                <div className="relative flex h-[44vh] items-end justify-start md:h-[50vh]">
+                <div className="relative flex h-[40vh] items-end justify-start md:h-[50vh]">
                   <Image
                     src={item.src}
                     alt={item.title}
@@ -119,7 +121,7 @@ export function PlansSection() {
                     sizes="var(--content)"
                   />
                 </div>
-                <h3 className="mt-8 text-[0.8rem] leading-snug font-medium tracking-[0.14em] text-plans-ink uppercase md:mt-10 md:text-[0.9rem]">
+                <h3 className="mt-6 max-w-[18rem] text-[0.8rem] leading-snug font-medium tracking-[0.14em] text-plans-ink uppercase md:mt-10 md:text-[0.9rem]">
                   {item.title}
                 </h3>
               </article>

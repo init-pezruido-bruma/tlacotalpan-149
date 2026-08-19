@@ -5,6 +5,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { scheduleScrollRefresh } from "../lib/scrollRefresh";
 import { compare } from "../content";
 import { goToTour } from "../lib/goToTour";
 
@@ -21,6 +22,7 @@ export function CompareSection() {
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
+      const desktop = window.matchMedia("(min-width: 768px)").matches;
 
       const title = section.querySelector(".compare-title");
       const cols = section.querySelectorAll(".compare-col");
@@ -38,8 +40,8 @@ export function CompareSection() {
           scrollTrigger: {
             trigger: section,
             start: "top top",
-            end: "+=180%",
-            pin: true,
+            end: desktop ? "+=180%" : "+=60%",
+            pin: desktop,
             scrub: true,
             anticipatePin: 1,
           },
@@ -61,7 +63,7 @@ export function CompareSection() {
       id={compare.id}
       className="compare-surface relative isolate overflow-hidden"
     >
-      <div className="flex h-[100svh] flex-col justify-center overflow-y-auto px-[max(1.25rem,calc((100%-var(--content))/2))] py-6 md:overflow-hidden md:py-8">
+      <div className="flex min-h-[100svh] flex-col justify-center overflow-y-auto px-[max(1.25rem,calc((100%-var(--content))/2))] py-8 md:h-[100svh] md:overflow-hidden md:py-8">
         <h2 className="compare-title text-center text-[clamp(1.15rem,2.6vw,1.75rem)] font-medium tracking-[0.16em] text-compare-ink uppercase">
           {compare.title}
         </h2>
@@ -92,7 +94,7 @@ export function CompareSection() {
                         fill
                         sizes="220px"
                         className="object-contain object-bottom"
-                        onLoad={() => ScrollTrigger.refresh()}
+                        onLoad={scheduleScrollRefresh}
                       />
                     </div>
                   ))
@@ -103,7 +105,7 @@ export function CompareSection() {
                     fill
                     sizes="220px"
                     className="object-contain object-bottom"
-                    onLoad={() => ScrollTrigger.refresh()}
+                    onLoad={scheduleScrollRefresh}
                   />
                 )}
               </div>
@@ -122,13 +124,13 @@ export function CompareSection() {
                 <button
                   type="button"
                   onClick={() => goToTour(item.unitId)}
-                  className="cursor-pointer rounded-full border border-compare-ink/70 px-4 py-2 text-[0.65rem] tracking-[0.1em] text-compare-ink uppercase transition-colors hover:border-compare-ink hover:bg-compare-ink/5"
+                  className="min-h-11 cursor-pointer rounded-full border border-compare-ink/70 px-4 py-2 text-[0.65rem] tracking-[0.1em] text-compare-ink uppercase transition-colors hover:border-compare-ink hover:bg-compare-ink/5"
                 >
                   {compare.tourCta}
                 </button>
                 <a
                   href={compare.visitHref}
-                  className="rounded-full bg-[linear-gradient(105deg,var(--hero-green-mid),var(--hero-green-deep))] px-4 py-2 text-[0.65rem] tracking-[0.1em] text-hero-ink uppercase transition-opacity hover:opacity-90"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(105deg,var(--hero-green-mid),var(--hero-green-deep))] px-4 py-2 text-[0.65rem] tracking-[0.1em] text-hero-ink uppercase transition-opacity hover:opacity-90"
                 >
                   {compare.visitCta}
                 </a>

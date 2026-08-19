@@ -23,6 +23,7 @@ export function IntroSection() {
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
+      const desktop = window.matchMedia("(min-width: 768px)").matches;
 
       if (reduce) {
         gsap.set(stack, { y: -44 });
@@ -39,8 +40,8 @@ export function IntroSection() {
           scrollTrigger: {
             trigger: section,
             start: "top top",
-            end: "+=80%",
-            pin: true,
+            end: desktop ? "+=80%" : "+=35%",
+            pin: desktop,
             scrub: 0.4,
             anticipatePin: 1,
             invalidateOnRefresh: true,
@@ -62,7 +63,7 @@ export function IntroSection() {
     >
       <div className="intro-grain" aria-hidden />
 
-      <div className="relative z-10 flex h-[100svh] items-center justify-center px-6">
+      <div className="relative z-10 flex min-h-[100svh] items-center justify-center px-6 py-18 md:py-0">
         <div
           ref={stackRef}
           className="relative w-full max-w-xl text-center will-change-transform"
@@ -72,7 +73,7 @@ export function IntroSection() {
           </h2>
           <p
             ref={bodyRef}
-            className="intro-body absolute top-full right-0 left-0 mt-10 text-[0.95rem] leading-[1.75] font-light text-intro-ink md:mt-12 md:text-base md:leading-[1.8]"
+            className="intro-body static mt-8 text-[0.95rem] leading-[1.75] font-light text-intro-ink md:absolute md:top-full md:right-0 md:left-0 md:mt-12 md:text-base md:leading-[1.8]"
             style={{ opacity: 0, visibility: "hidden" }}
           >
             {intro.body}
