@@ -49,7 +49,7 @@ export function ProgressSection() {
             trigger: section,
             start: "top top",
             end: desktop ? "+=120%" : "+=40%",
-            pin: desktop,
+            pin: true,
             scrub: true,
             anticipatePin: 1,
           },

@@ -16,6 +16,10 @@ export function PageMotion({ children }: { children: React.ReactNode }) {
         autoRefreshEvents: "visibilitychange,resize",
       });
 
+      if (ScrollTrigger.isTouch > 0) {
+        ScrollTrigger.normalizeScroll(true);
+      }
+
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;

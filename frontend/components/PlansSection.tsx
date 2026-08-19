@@ -23,7 +23,6 @@ export function PlansSection() {
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
-      const desktop = window.matchMedia("(min-width: 768px)").matches;
 
       const getEndGutter = () =>
         parseFloat(getComputedStyle(track).paddingRight) || 20;
@@ -38,7 +37,7 @@ export function PlansSection() {
 
       const getHold = () => Math.round(window.innerHeight * 0.12);
 
-      if (reduce || !desktop) {
+      if (reduce) {
         gsap.set(track, { x: 0 });
         return;
       }

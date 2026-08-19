@@ -57,6 +57,12 @@ html {
   overflow-x: hidden;
 }
 
+@media (pointer: coarse) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -82,8 +88,7 @@ button,
 input,
 select,
 textarea,
-summary,
-canvas {
+summary {
   touch-action: manipulation;
 }
 

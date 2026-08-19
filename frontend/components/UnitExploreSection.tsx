@@ -371,7 +371,6 @@ export function UnitExploreSection() {
     initialTourUnit.spaces[0]?.id ?? null,
   );
   const [mountPano, setMountPano] = useState(false);
-  const mobilePhaseRef = useRef<Phase>("iso");
 
   const applyUnit = useCallback((unitKey: string | null) => {
     if (!unitKey) return;
@@ -494,71 +493,6 @@ export function UnitExploreSection() {
 
       const desktop = window.matchMedia("(min-width: 768px)").matches;
 
-      if (!desktop) {
-        gsap.set(bg, { backgroundColor: "#e8e4d9" });
-        gsap.set(isoLayer, { autoAlpha: 1 });
-        gsap.set(isoVisual, { autoAlpha: 1, y: 0 });
-        gsap.set(isoPanel, { autoAlpha: 1, y: 0 });
-        gsap.set(tourLayer, { autoAlpha: 1 });
-        gsap.set(panoWrap, { filter: "blur(0px) saturate(1)" });
-        gsap.set(frost, { autoAlpha: 0 });
-        gsap.set(tourUi, { autoAlpha: 1 });
-        gsap.set(sheetUi, { autoAlpha: 1 });
-        gsap.set(compare, { autoAlpha: 1 });
-        setPhase("iso");
-        setSheetMode(false);
-        setActive(false);
-
-        const tourStartProgress = 0.34;
-        const sheetStartProgress = 0.68;
-        const tourBackProgress = 0.24;
-        const sheetBackProgress = 0.58;
-        mobilePhaseRef.current = "iso";
-
-        ScrollTrigger.create({
-          id: UNIT_SECTION_ID,
-          trigger: section,
-          start: "top top",
-          end: "+=220%",
-          scrub: true,
-          pin: false,
-          onUpdate: (self) => {
-            const p = self.progress;
-            let next = mobilePhaseRef.current;
-
-            if (mobilePhaseRef.current === "iso") {
-              if (p >= tourStartProgress) next = "tour";
-            } else if (mobilePhaseRef.current === "tour") {
-              if (p < tourBackProgress) next = "iso";
-              else if (p >= sheetStartProgress) next = "sheet";
-            } else if (p < sheetBackProgress) {
-              next = "tour";
-            }
-
-            if (next === mobilePhaseRef.current) return;
-            mobilePhaseRef.current = next;
-
-            if (next === "iso") {
-              setPhase("iso");
-              setActive(false);
-              setSheetMode(false);
-            } else if (next === "tour") {
-              setPhase("tour");
-              setActive(true);
-              setSheetMode(false);
-            } else {
-              setPhase("sheet");
-              setActive(true);
-              setSheetMode(true);
-            }
-          },
-        });
-
-        setTourScrollProgress(0.42);
-        setIsoScrollProgress(0.18);
-        return;
-      }
-
       gsap.set(bg, { backgroundColor: "#e8e4d9" });
       gsap.set(isoLayer, { autoAlpha: 1 });
       gsap.set(isoVisual, { autoAlpha: 0, y: 24 });
@@ -572,6 +506,8 @@ export function UnitExploreSection() {
       setPhase("iso");
       setSheetMode(false);
 
+      const pinEnd = desktop ? "+=460%" : "+=320%";
+
       let tourStartProgress = 0.3;
       let sheetStartProgress = 0.58;
 
@@ -581,7 +517,7 @@ export function UnitExploreSection() {
           id: UNIT_SECTION_ID,
           trigger: section,
           start: "top top",
-          end: "+=460%",
+          end: pinEnd,
           pin: true,
           scrub: true,
           anticipatePin: 1,
@@ -748,9 +684,6 @@ export function UnitExploreSection() {
 
   const darkUi = phase !== "iso";
   const isTourInteractive = phase === "tour" && !sheetMode;
-  const hideMobileIso = phase !== "iso";
-  const hideMobileTour = phase !== "tour" || sheetMode;
-  const hideMobileSheet = !sheetMode;
 
   const unitSelectorButtons = isoUnits.map((u) => {
     const selected = u.id === unitId;
@@ -781,7 +714,7 @@ export function UnitExploreSection() {
     <section
       ref={sectionRef}
       id={UNIT_SECTION_ID}
-      className="relative isolate h-[100svh] overflow-hidden max-md:h-auto max-md:overflow-x-hidden"
+      className="relative isolate h-[100svh] overflow-hidden"
       aria-label="Isométricos y recorrido 360"
     >
       <div ref={bgRef} className="absolute inset-0" aria-hidden />
@@ -789,17 +722,13 @@ export function UnitExploreSection() {
       {/* Fase isométrica */}
       <div
         ref={isoLayerRef}
-        className={[
-          "absolute inset-0 z-[1]",
-          "max-md:relative max-md:min-h-[100svh] max-md:bg-[#e8e4d9]",
-          hideMobileIso ? "max-md:hidden" : "",
-        ].join(" ")}
+        className="absolute inset-0 z-[1]"
         aria-hidden={phase !== "iso"}
       >
-        <div className="flex h-full flex-col px-5 pt-20 pb-24 max-md:gap-6 max-md:overflow-visible md:flex-row md:items-center md:gap-10 md:px-10 md:pt-6 md:pb-16 lg:gap-16 lg:px-14">
+        <div className="flex h-full flex-col px-5 pt-16 pb-20 max-md:gap-4 md:flex-row md:items-center md:gap-10 md:px-10 md:pt-6 md:pb-16 lg:gap-16 lg:px-14">
           <div
             ref={isoVisualRef}
-            className="flex max-h-[36svh] min-h-[180px] shrink-0 items-center justify-center max-md:max-h-[36svh] md:max-h-none md:min-h-0 md:flex-1 md:justify-end md:pr-4"
+            className="flex max-h-[34svh] min-h-0 flex-1 items-center justify-center max-md:max-h-[32svh] md:justify-end md:pr-4"
           >
             <div className="relative w-full">
               {leavingUnit && (
@@ -847,21 +776,12 @@ export function UnitExploreSection() {
       {/* Fase recorrido 360 + ficha */}
       <div
         ref={tourLayerRef}
-        className={[
-          "absolute inset-0 z-[2]",
-          "max-md:relative max-md:bg-[#0c0e0a]",
-          hideMobileTour && hideMobileSheet ? "max-md:hidden" : "",
-          hideMobileSheet ? "max-md:min-h-[100svh] max-md:overflow-hidden" : "",
-          phase === "iso" ? "pointer-events-none" : "",
-        ].join(" ")}
-        aria-hidden={phase === "iso" && hideMobileSheet}
+        className={`absolute inset-0 z-[2] ${phase === "iso" ? "pointer-events-none" : ""}`}
+        aria-hidden={phase === "iso"}
       >
         <div
           ref={panoWrapRef}
-          className={[
-            "absolute inset-0 will-change-[filter]",
-            sheetMode ? "pointer-events-none max-md:hidden" : "",
-          ].join(" ")}
+          className={`absolute inset-0 will-change-[filter] ${sheetMode ? "pointer-events-none" : ""}`}
         >
           {mountPano ? (
             <PanoramaCanvas
@@ -876,25 +796,19 @@ export function UnitExploreSection() {
 
         <div
           ref={frostRef}
-          className="pointer-events-none absolute inset-0 max-md:hidden bg-[rgba(8,10,6,0.48)] backdrop-blur-[2px]"
+          className="pointer-events-none absolute inset-0 bg-[rgba(8,10,6,0.48)] backdrop-blur-[2px]"
           aria-hidden
         />
         <div
-          className="pointer-events-none absolute inset-0 max-md:hidden bg-[radial-gradient(ellipse_at_center,transparent_42%,rgba(8,10,6,0.45)_100%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_42%,rgba(8,10,6,0.45)_100%)]"
           aria-hidden
         />
         <div
-          className={[
-            "pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/55 to-transparent",
-            sheetMode ? "max-md:hidden" : "",
-          ].join(" ")}
+          className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-black/55 to-transparent"
           aria-hidden
         />
         <div
-          className={[
-            "pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/50 to-transparent",
-            sheetMode ? "max-md:hidden" : "",
-          ].join(" ")}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/50 to-transparent"
           aria-hidden
         />
 
@@ -902,7 +816,7 @@ export function UnitExploreSection() {
           ref={tourUiRef}
           className={[
             "pointer-events-none absolute inset-0 z-10",
-            sheetMode ? "max-md:hidden" : "",
+            sheetMode ? "max-md:invisible max-md:opacity-0" : "",
           ].join(" ")}
         >
           <div className="absolute top-0 left-0 max-w-[min(24rem,calc(100vw-2.5rem))] px-5 pt-24 md:max-w-[min(22rem,70vw)] md:px-8 md:pt-28">
@@ -960,19 +874,14 @@ export function UnitExploreSection() {
 
         <div
           ref={sheetUiRef}
-          className={[
-            "absolute inset-0 z-20",
-            "max-md:relative max-md:min-h-[100svh] max-md:bg-[#0c0e0a]",
-            hideMobileSheet ? "max-md:hidden" : "",
-            sheetMode ? "" : "pointer-events-none",
-          ].join(" ")}
+          className={`absolute inset-0 z-20 ${sheetMode ? "" : "pointer-events-none"}`}
           aria-hidden={!sheetMode}
         >
           <div className="sticky top-0 z-30 flex gap-2 overflow-x-auto border-b border-white/10 bg-[#0c0e0a] px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
             {unitSelectorButtons}
           </div>
 
-          <div className="flex h-full flex-col overflow-y-auto px-5 pt-4 pb-10 md:justify-center md:overflow-hidden md:px-10 md:pt-6 md:pb-16 lg:px-14">
+          <div className="flex h-full flex-col overflow-y-auto px-5 pt-4 pb-10 max-md:pb-24 md:justify-center md:overflow-hidden md:px-10 md:pt-6 md:pb-16 lg:px-14">
             <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch gap-8 md:h-full md:flex-row md:items-center md:justify-center md:gap-8 lg:gap-12">
               <div className="flex w-full shrink-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] max-md:justify-start md:w-auto md:items-end md:justify-center md:overflow-visible md:pb-0 md:pt-0 md:gap-5 [&::-webkit-scrollbar]:hidden">
                 {(sheet.plans ?? [sheet.plan]).map((plan) => (
@@ -1078,9 +987,6 @@ export function UnitExploreSection() {
           "absolute bottom-6 left-5 z-40 flex flex-col items-start gap-2.5 md:bottom-8 md:left-8",
           phase === "tour" && !sheetMode ? "max-md:hidden" : "",
           sheetMode ? "max-md:hidden" : "",
-          !sheetMode && phase !== "tour"
-            ? "max-md:top-3 max-md:bottom-auto max-md:left-0 max-md:w-full max-md:flex-row max-md:overflow-x-auto max-md:border-b max-md:border-compare-ink/15 max-md:bg-[#e8e4d9]/96 max-md:px-4 max-md:py-3"
-            : "",
         ].join(" ")}
       >
         {unitSelectorButtons}

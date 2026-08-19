@@ -33,33 +33,16 @@ export function PlaceSection() {
       ).matches;
 
       const desktop = window.matchMedia("(min-width: 768px)").matches;
-      const endFrame = { top: "10%", left: "54%", width: "42%", height: "80%" };
+      const endFrame = desktop
+        ? { top: "10%", left: "54%", width: "42%", height: "80%" }
+        : { top: "4%", left: "5%", width: "90%", height: "32%" };
 
       video.pause();
       video.muted = true;
 
       if (reduce) {
-        if (desktop) {
-          gsap.set(frame, endFrame);
-        } else {
-          gsap.set(frame, { clearProps: "top,left,width,height" });
-        }
+        gsap.set(frame, endFrame);
         gsap.set([title, subtitle, body], { autoAlpha: 1, y: 0 });
-        return;
-      }
-
-      if (!desktop) {
-        gsap.set(frame, { clearProps: "top,left,width,height" });
-        gsap.set([title, subtitle, body], { autoAlpha: 1, y: 0 });
-
-        const src = pickVideoSrc(place.video.src, place.video.srcMobile);
-        if (video.src !== src) {
-          video.src = src;
-          video.load();
-        }
-        video.loop = true;
-        void video.play().catch(() => {});
-
         return;
       }
 
@@ -71,7 +54,7 @@ export function PlaceSection() {
         scrollTrigger: {
           trigger: section,
           start: "top top",
-          end: "+=280%",
+          end: desktop ? "+=280%" : "+=200%",
           pin: true,
           scrub: true,
           anticipatePin: 1,
@@ -126,25 +109,8 @@ export function PlaceSection() {
     >
       <div className="place-grain" aria-hidden />
 
-      <div className="relative min-h-[100svh] w-full max-md:flex max-md:flex-col max-md:min-h-0">
-        <div
-          ref={frameRef}
-          className="place-frame absolute top-0 left-0 z-20 h-full w-full overflow-hidden will-change-[top,left,width,height] max-md:relative max-md:order-1 max-md:h-[28svh] max-md:min-h-[180px] max-md:max-h-[240px] max-md:shrink-0"
-        >
-          <video
-            ref={videoRef}
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-            poster={place.video.poster}
-            muted
-            playsInline
-            preload="none"
-            aria-hidden
-            disablePictureInPicture
-            onLoadedMetadata={scheduleScrollRefresh}
-          />
-        </div>
-
-        <div className="absolute inset-0 z-10 flex items-end px-[max(1.25rem,calc((100%-var(--content))/2))] pt-22 pb-10 max-md:relative max-md:order-2 max-md:inset-auto max-md:items-start max-md:py-8 md:items-center md:py-0">
+      <div className="relative min-h-[100svh] w-full">
+        <div className="absolute inset-0 z-10 flex items-end px-[max(1.25rem,calc((100%-var(--content))/2))] pt-22 pb-10 md:items-center md:py-0">
           <div className="place-copy w-full max-w-lg md:w-[min(46%,32rem)]">
             <h2
               ref={titleRef}
@@ -169,6 +135,23 @@ export function PlaceSection() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div
+          ref={frameRef}
+          className="place-frame absolute top-0 left-0 z-20 h-full w-full overflow-hidden will-change-[top,left,width,height]"
+        >
+          <video
+            ref={videoRef}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            poster={place.video.poster}
+            muted
+            playsInline
+            preload="none"
+            aria-hidden
+            disablePictureInPicture
+            onLoadedMetadata={scheduleScrollRefresh}
+          />
         </div>
       </div>
     </section>

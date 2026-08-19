@@ -41,7 +41,7 @@ export function IntroSection() {
             trigger: section,
             start: "top top",
             end: desktop ? "+=80%" : "+=35%",
-            pin: desktop,
+            pin: true,
             scrub: 0.4,
             anticipatePin: 1,
             invalidateOnRefresh: true,

@@ -41,7 +41,7 @@ export function CompareSection() {
             trigger: section,
             start: "top top",
             end: desktop ? "+=180%" : "+=60%",
-            pin: desktop,
+            pin: true,
             scrub: true,
             anticipatePin: 1,
           },
