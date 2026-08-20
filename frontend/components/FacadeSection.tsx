@@ -4,9 +4,13 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { facade } from "../content";
+import { facade, place } from "../content";
 import { goToIsometric } from "../lib/goToTour";
-import { pickVideoSrc, prepareScrubVideo } from "../lib/scrubVideo";
+import {
+  lastSeekableTime,
+  pickVideoSrc,
+  prepareScrubVideo,
+} from "../lib/scrubVideo";
 import { scheduleScrollRefresh } from "../lib/scrollRefresh";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
@@ -43,14 +47,16 @@ function EyeIcon() {
 export function FacadeSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const endFrameRef = useRef<HTMLImageElement>(null);
   const hotspotsRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       const section = sectionRef.current;
       const video = videoRef.current;
+      const endFrame = endFrameRef.current;
       const hotspots = hotspotsRef.current;
-      if (!section || !video || !hotspots) return;
+      if (!section || !video || !endFrame || !hotspots) return;
 
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
@@ -61,12 +67,12 @@ export function FacadeSection() {
       video.muted = true;
 
       if (reduce) {
-        gsap.set(hotspots, { autoAlpha: 1 });
-        video.currentTime = Number.isFinite(video.duration) ? video.duration : 0;
+        gsap.set([hotspots, endFrame], { autoAlpha: 1 });
+        video.currentTime = lastSeekableTime(video);
         return;
       }
 
-      gsap.set(hotspots, { autoAlpha: 0 });
+      gsap.set([hotspots, endFrame], { autoAlpha: 0 });
 
       const tl = gsap.timeline({
         defaults: { ease: "none" },
@@ -85,10 +91,15 @@ export function FacadeSection() {
         },
       });
 
-      // El video ocupa el primer beat; los vínculos entran al terminar.
+      // El video ocupa el primer beat; el still final cubre el último frame
+      // (seek a duration vuelve al inicio) y luego entran los vínculos.
       tl.to({}, { duration: 1 });
+      tl.to(endFrame, { autoAlpha: 1, duration: 0.08 }, 0.92);
       tl.to(hotspots, { autoAlpha: 1, duration: 0.18 });
       tl.to({}, { duration: 0.5 });
+
+      const preloadFrom =
+        document.getElementById(place.id) ?? section;
 
       const scrub = prepareScrubVideo({
         video,
@@ -96,8 +107,8 @@ export function FacadeSection() {
         timeline: tl,
         scrubDuration: 1,
         isLocked: () => section.dataset.tourLock === "1",
-        trigger: section,
-        start: "top bottom+=120%",
+        trigger: preloadFrom,
+        start: preloadFrom === section ? "top bottom+=200%" : "top top",
       });
 
       const unlock = () => {
@@ -144,6 +155,15 @@ export function FacadeSection() {
           aria-hidden
           disablePictureInPicture
           onLoadedMetadata={scheduleScrollRefresh}
+        />
+        <img
+          ref={endFrameRef}
+          src={facade.video.lastFrame}
+          alt=""
+          className="pointer-events-none absolute inset-0 z-[1] h-full w-full object-cover"
+          style={{ opacity: 0, visibility: "hidden" }}
+          aria-hidden
+          decoding="async"
         />
 
         <div

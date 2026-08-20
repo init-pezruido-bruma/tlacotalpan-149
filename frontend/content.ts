@@ -200,6 +200,7 @@ export const facade = {
     src: "/videos/VIDEO_FINAL-1600.mp4",
     srcMobile: "/videos/VIDEO_FINAL-1280.mp4",
     poster: "/videos/VIDEO_FINAL.jpg",
+    lastFrame: "/videos/VIDEO_FINAL_last.jpg",
     alt: "Recorrido hacia la fachada de Tlacotalpan 149",
   },
   hotspots: [

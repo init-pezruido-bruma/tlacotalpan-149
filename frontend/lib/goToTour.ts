@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { lastSeekableTime } from "./scrubVideo";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
@@ -34,10 +35,7 @@ function lockFacadeVideo() {
   if (!section || !video) return;
 
   section.dataset.tourLock = "1";
-  const last =
-    Number.isFinite(video.duration) && video.duration > 0
-      ? video.duration
-      : video.currentTime;
+  const last = lastSeekableTime(video) || video.currentTime;
   if (video.readyState >= 2) {
     video.currentTime = last;
   }

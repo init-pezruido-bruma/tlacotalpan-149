@@ -29,6 +29,13 @@ export function pickVideoSrc(src: string, srcMobile: string) {
   return encodeURI(prefersLiteVideo() ? srcMobile : src);
 }
 
+/** Seeking to `duration` makes most browsers snap back to the first frame. */
+export function lastSeekableTime(video: HTMLVideoElement) {
+  const { duration } = video;
+  if (!Number.isFinite(duration) || duration <= 0) return 0;
+  return Math.max(0, duration - 1 / 30);
+}
+
 function clampToBuffered(video: HTMLVideoElement, time: number) {
   const { buffered } = video;
   if (!buffered.length) return 0;
@@ -83,13 +90,33 @@ export function prepareScrubVideo({
   let target = 0;
   let attached = false;
   let started = false;
+  let raf = 0;
+
+  const capTarget = () => {
+    const cap = lastSeekableTime(video);
+    return cap > 0 ? Math.min(target, cap) : target;
+  };
+
+  const flush = () => {
+    raf = 0;
+    if (isLocked?.()) return;
+    if (video.seeking) return;
+    if (video.readyState < 2 && video.buffered.length === 0) return;
+    const next = clampToBuffered(video, capTarget());
+    if (Math.abs(video.currentTime - next) < 1 / 60) return;
+    video.currentTime = next;
+  };
 
   const apply = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(flush);
+  };
+
+  const onEnded = () => {
     if (isLocked?.()) return;
-    if (video.readyState < 2 && video.buffered.length === 0) return;
-    const next = clampToBuffered(video, target);
-    if (Math.abs(video.currentTime - next) >= 1 / 60) {
-      video.currentTime = next;
+    const cap = lastSeekableTime(video);
+    if (cap > 0 && target >= cap - 0.05) {
+      video.currentTime = cap;
     }
   };
 
@@ -101,7 +128,7 @@ export function prepareScrubVideo({
       proxy,
       { time: 0 },
       {
-        time: video.duration,
+        time: lastSeekableTime(video),
         duration: scrubDuration,
         ease: "none",
         onUpdate: () => {
@@ -131,13 +158,20 @@ export function prepareScrubVideo({
   video.addEventListener("durationchange", attach);
   video.addEventListener("progress", apply);
   video.addEventListener("canplay", apply);
+  video.addEventListener("seeked", apply);
+  video.addEventListener("ended", onEnded);
 
   const preload = ScrollTrigger.create({
     trigger,
     start,
     once: true,
     onEnter: begin,
+    onRefresh: (self) => {
+      if (self.scroll() >= self.start) begin();
+    },
   });
+
+  if (preload.scroll() >= preload.start) begin();
 
   let idle = 0;
   let idleCallback = 0;
@@ -151,6 +185,7 @@ export function prepareScrubVideo({
   }
 
   return () => {
+    window.cancelAnimationFrame(raf);
     window.clearTimeout(idle);
     window.cancelIdleCallback?.(idleCallback);
     preload.kill();
@@ -159,5 +194,7 @@ export function prepareScrubVideo({
     video.removeEventListener("durationchange", attach);
     video.removeEventListener("progress", apply);
     video.removeEventListener("canplay", apply);
+    video.removeEventListener("seeked", apply);
+    video.removeEventListener("ended", onEnded);
   };
 }
