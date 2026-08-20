@@ -16,7 +16,7 @@ export function PlaceSection() {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const [selectedId, setSelectedId] = useState(place.pins[0].id);
+  const [selectedId, setSelectedId] = useState<string>(place.pins[0].id);
   const selected =
     place.pins.find((pin) => pin.id === selectedId) ?? place.pins[0];
 
@@ -107,9 +107,9 @@ export function PlaceSection() {
               {place.body.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
-              {!selected.home ? (
+              {"home" in selected ? null : (
                 <p aria-live="polite">{selected.note}</p>
-              ) : null}
+              )}
               <a
                 href={place.directions.href}
                 target="_blank"
