@@ -34,6 +34,12 @@ export const intro = {
   id: "intro",
   title: "Tlacotalpan 149",
   body: "Desarrollo residencial boutique en el corazón de Roma Sur, diseñado para quienes valoran la arquitectura, la privacidad y la calidad de vida. Con solo ocho unidades entre residencias y estudios, cada espacio fue concebido para aprovechar la luz natural, extender la vida hacia el exterior y ofrecer una experiencia de vivienda contemporánea en una de las colonias con mayor riqueza cultural de la Ciudad de México.",
+  video: {
+    src: "/videos/TL149_FC_FACHADA_DIANOCHE-1920.mp4",
+    srcMobile: "/videos/TL149_FC_FACHADA_DIANOCHE-1280.mp4",
+    poster: "/videos/TL149_FC_FACHADA_DIANOCHE.jpg",
+    alt: "Fachada de Tlacotalpan 149, de día a noche",
+  },
 } as const;
 
 export const place = {
@@ -45,12 +51,6 @@ export const place = {
     "Vivir en Roma Sur significa estar rodeado de cultura, gastronomía y espacios verdes, sin renunciar a la tranquilidad de un entorno residencial. Tlacotalpan 149 se encuentra en una de las zonas con mayor valor urbano de la Ciudad de México, con acceso inmediato a parques, cafeterías, galerías, restaurantes y una amplia oferta cultural que hacen de cada recorrido una extensión de tu hogar.",
     "Ubicado en Roma Sur, Tlacotalpan 149 conecta con parques, espacios culturales, gastronomía, servicios y transporte, manteniendo la tranquilidad de una zona residencial.",
   ],
-  video: {
-    src: "/videos/TL149_FC_FACHADA_DIANOCHE-1920.mp4",
-    srcMobile: "/videos/TL149_FC_FACHADA_DIANOCHE-1280.mp4",
-    poster: "/videos/TL149_FC_FACHADA_DIANOCHE.jpg",
-    alt: "Fachada de Tlacotalpan 149, de día a noche",
-  },
 } as const;
 
 export const spaces = {
