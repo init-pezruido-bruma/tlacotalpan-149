@@ -49,7 +49,61 @@ export const place = {
   subtitle: "Ciudad de México · CP 06760",
   body: [
     "Vivir en Roma Sur significa estar rodeado de cultura, gastronomía y espacios verdes, sin renunciar a la tranquilidad de un entorno residencial. Tlacotalpan 149 se encuentra en una de las zonas con mayor valor urbano de la Ciudad de México, con acceso inmediato a parques, cafeterías, galerías, restaurantes y una amplia oferta cultural que hacen de cada recorrido una extensión de tu hogar.",
-    "Ubicado en Roma Sur, Tlacotalpan 149 conecta con parques, espacios culturales, gastronomía, servicios y transporte, manteniendo la tranquilidad de una zona residencial.",
+  ],
+  directions: {
+    label: "Cómo llegar",
+    href: "https://maps.google.com/?q=Tlacotalpan+149,+Roma+Sur,+Ciudad+de+M%C3%A9xico",
+  },
+  pins: [
+    {
+      id: "home",
+      label: "Tlacotalpan 149",
+      walk: "",
+      note: "El edificio, en una calle residencial de Roma Sur.",
+      x: 54,
+      y: 48,
+      home: true,
+    },
+    {
+      id: "mercado",
+      label: "Mercado Medellín",
+      walk: "6 min",
+      note: "Mercado de barrio, a seis minutos a pie.",
+      x: 30,
+      y: 66,
+    },
+    {
+      id: "metro",
+      label: "Metro Chilpancingo",
+      walk: "10 min",
+      note: "Línea 9, a diez minutos caminando.",
+      x: 16,
+      y: 42,
+    },
+    {
+      id: "parque",
+      label: "Parque España",
+      walk: "12 min",
+      note: "Área verde y sombra, a doce minutos a pie.",
+      x: 76,
+      y: 24,
+    },
+    {
+      id: "insurgentes",
+      label: "Insurgentes",
+      walk: "8 min",
+      note: "Corredor de restaurantes, cultura y transporte.",
+      x: 14,
+      y: 74,
+    },
+    {
+      id: "cafes",
+      label: "Cafés y cocina",
+      walk: "3 min",
+      note: "Cafeterías y gastronomía de la colonia, a la vuelta.",
+      x: 68,
+      y: 70,
+    },
   ],
 } as const;
 
