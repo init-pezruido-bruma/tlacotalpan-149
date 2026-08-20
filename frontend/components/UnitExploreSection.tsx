@@ -426,8 +426,10 @@ export function UnitExploreSection() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [phase, sheetMode]);
 
+  // Keep the 360 mounted through sheet mode so frost/blur still has the
+  // panorama behind it; only unmount when leaving the tour entirely.
   useEffect(() => {
-    if (!active || sheetMode) {
+    if (!active) {
       const id = window.setTimeout(() => setMountPano(false), 0);
       return () => window.clearTimeout(id);
     }
@@ -440,7 +442,7 @@ export function UnitExploreSection() {
 
     const id = window.setTimeout(() => setMountPano(true), 280);
     return () => window.clearTimeout(id);
-  }, [active, sheetMode]);
+  }, [active]);
 
   useGSAP(
     () => {
