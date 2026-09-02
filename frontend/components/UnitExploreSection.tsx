@@ -242,13 +242,22 @@ function StackedIsometricVisual({
   images,
   unit,
   editMode = false,
+  renderImages = true,
+  renderHotspots = true,
+  activeFloor = null,
+  onActiveFloorChange,
+  showFloorLabel = true,
 }: {
   images: readonly StackImage[];
   unit: IsoUnit;
   editMode?: boolean;
+  renderImages?: boolean;
+  renderHotspots?: boolean;
+  activeFloor?: number | null;
+  onActiveFloorChange?: (floor: number | null) => void;
+  showFloorLabel?: boolean;
 }) {
   const stackRef = useRef<HTMLDivElement>(null);
-  const [activeFloor, setActiveFloor] = useState<number | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
@@ -259,37 +268,50 @@ function StackedIsometricVisual({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  const pickFloor = useCallback((clientY: number) => {
-    const el = stackRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    if (rect.height <= 0) return;
-    const yRatio = (clientY - rect.top) / rect.height;
-    if (yRatio < 0 || yRatio > 1) {
-      setActiveFloor(null);
-      return;
-    }
-    setActiveFloor(floorIndexFromPointer(yRatio));
-  }, []);
+  const pickFloor = useCallback(
+    (clientY: number) => {
+      if (!onActiveFloorChange) return;
+      const el = stackRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.height <= 0) return;
+      const yRatio = (clientY - rect.top) / rect.height;
+      if (yRatio < 0 || yRatio > 1) {
+        onActiveFloorChange(null);
+        return;
+      }
+      onActiveFloorChange(floorIndexFromPointer(yRatio));
+    },
+    [onActiveFloorChange],
+  );
 
   const activeLabel =
-    activeFloor !== null ? images[activeFloor]?.label : null;
+    showFloorLabel && activeFloor !== null ? images[activeFloor]?.label : null;
+
+  const interactive = renderImages && Boolean(onActiveFloorChange);
 
   return (
     <div
       ref={stackRef}
-      className="absolute inset-0 cursor-default"
-      onMouseMove={(event) => pickFloor(event.clientY)}
-      onMouseLeave={() => setActiveFloor(null)}
-      onPointerDown={(event) => {
-        if (event.pointerType !== "mouse") pickFloor(event.clientY);
-      }}
+      className={[
+        "absolute inset-0",
+        interactive ? "cursor-default" : "pointer-events-none",
+      ].join(" ")}
+      onMouseMove={interactive ? (event) => pickFloor(event.clientY) : undefined}
+      onMouseLeave={interactive ? () => onActiveFloorChange?.(null) : undefined}
+      onPointerDown={
+        interactive
+          ? (event) => {
+              if (event.pointerType !== "mouse") pickFloor(event.clientY);
+            }
+          : undefined
+      }
     >
       {images.map((img, layerIndex) => {
         const isActive = activeFloor === layerIndex;
         const isDimmed = !editMode && activeFloor !== null && !isActive;
         const lift =
-          isActive && !reduceMotion && !editMode
+          isActive && !reduceMotion && !editMode && renderImages
             ? " translateY(-3.5%) scale-[1.035]"
             : "";
 
@@ -298,8 +320,10 @@ function StackedIsometricVisual({
             key={img.src}
             className={[
               "absolute inset-0 origin-bottom transition-[transform,opacity,filter] duration-300 ease-out",
-              isDimmed ? "opacity-[0.62] brightness-[0.94] saturate-[0.88]" : "",
-              isActive
+              renderImages && isDimmed
+                ? "opacity-[0.62] brightness-[0.94] saturate-[0.88]"
+                : "",
+              renderImages && isActive
                 ? "brightness-[1.05] drop-shadow-[0_14px_28px_rgba(0,0,0,0.2)]"
                 : "",
             ].join(" ")}
@@ -308,35 +332,40 @@ function StackedIsometricVisual({
               transform: `translate(${img.stack.x}%, ${img.stack.y}%)${lift}`,
             }}
           >
-            <div className="pointer-events-none absolute inset-0">
-              <Image
-                src={img.src}
-                alt={img.alt}
-                fill
-                sizes="(max-width: 768px) 88vw, 52vw"
-                className="object-contain object-bottom"
-                onLoad={scheduleScrollRefresh}
+            {renderImages ? (
+              <div className="pointer-events-none absolute inset-0">
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="(max-width: 768px) 88vw, 52vw"
+                  className="object-contain object-bottom"
+                  onLoad={scheduleScrollRefresh}
+                />
+              </div>
+            ) : null}
+            {renderHotspots ? (
+              <IsometricHotspots
+                unit={unit}
+                floor={layerIndex}
+                activeFloor={activeFloor}
+                editMode={editMode}
               />
-            </div>
-            <IsometricHotspots
-              unit={unit}
-              floor={layerIndex}
-              activeFloor={activeFloor}
-              editMode={editMode}
-            />
+            ) : null}
           </div>
         );
       })}
 
-      <div
-        className={[
-          "pointer-events-none absolute top-[8%] left-1/2 -translate-x-1/2 rounded-md bg-[#f3f0e8]/94 px-3 py-1.5 text-[0.62rem] font-medium tracking-[0.16em] text-[#1c1c16] uppercase transition-[opacity,transform] duration-200 md:text-[0.68rem]",
-          activeLabel ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0",
-        ].join(" ")}
-        aria-hidden={!activeLabel}
-      >
-        {activeLabel}
-      </div>
+      {activeLabel ? (
+        <div
+          className={[
+            "pointer-events-none absolute top-[8%] left-1/2 -translate-x-1/2 rounded-md bg-[#f3f0e8]/94 px-3 py-1.5 text-[0.62rem] font-medium tracking-[0.16em] text-[#1c1c16] uppercase transition-[opacity,transform] duration-200 md:text-[0.68rem]",
+            "translate-y-0 opacity-100",
+          ].join(" ")}
+        >
+          {activeLabel}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -351,6 +380,12 @@ function IsometricVisual({
   editMode?: boolean;
 }) {
   const isStacked = Boolean(unit.images?.length);
+  const [activeFloor, setActiveFloor] = useState<number | null>(null);
+
+  useEffect(() => {
+    setActiveFloor(null);
+  }, [unit.id]);
+
   const sharedWidth =
     "mx-auto w-full max-w-[min(560px,78vw)] md:max-w-none md:flex-1";
 
@@ -387,36 +422,39 @@ function IsometricVisual({
 
   if (!unit.images?.length) return null;
 
-  const stackViewport = (
+  const stackBase = (
     <div className="absolute inset-x-0 bottom-0 aspect-[5760/3652]">
       <StackedIsometricVisual
         images={unit.images}
         unit={unit}
         editMode={editMode}
+        renderHotspots={false}
+        activeFloor={activeFloor}
+        onActiveFloorChange={setActiveFloor}
       />
+      {unit.hotspots?.length && hotspotsRef ? (
+        <div
+          ref={hotspotsRef}
+          data-iso-hotspots=""
+          className="pointer-events-none absolute inset-0 z-10"
+          aria-hidden
+        >
+          <StackedIsometricVisual
+            images={unit.images}
+            unit={unit}
+            editMode={editMode}
+            renderImages={false}
+            activeFloor={activeFloor}
+            showFloorLabel={false}
+          />
+        </div>
+      ) : null}
     </div>
   );
 
   return (
     <div className={`relative ${sharedWidth}`}>
-      <div className="relative w-full aspect-[5760/5150]">
-        {hotspotsRef ? (
-          <div
-            ref={hotspotsRef}
-            data-iso-hotspots=""
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 aspect-[5760/3652]"
-            aria-hidden
-          >
-            <StackedIsometricVisual
-              images={unit.images}
-              unit={unit}
-              editMode={editMode}
-            />
-          </div>
-        ) : (
-          stackViewport
-        )}
-      </div>
+      <div className="relative w-full aspect-[5760/5150]">{stackBase}</div>
     </div>
   );
 }
