@@ -152,7 +152,11 @@ export function PanoramaCanvas({
         </div>
       )}
       <Canvas
-        className="h-full w-full touch-pan-y"
+        className={
+          interactionEnabled
+            ? "h-full w-full touch-none"
+            : "pointer-events-none h-full w-full touch-pan-y"
+        }
         camera={{
           fov: 75,
           near: 0.1,

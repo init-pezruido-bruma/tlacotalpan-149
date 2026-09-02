@@ -208,13 +208,13 @@ export function IntroSection() {
         <figcaption className="sr-only">{intro.video.alt}</figcaption>
       </figure>
 
-      <div className="relative z-10 flex min-h-[100svh] items-center justify-center px-6 py-18 md:py-0">
+      <div className="relative z-10 flex min-h-[100svh] items-center justify-center px-6 py-12 max-md:py-12 md:py-0">
         <div
           ref={stackRef}
           className="relative w-full max-w-xl will-change-[opacity,transform]"
           style={{ opacity: 0, visibility: "hidden" }}
         >
-          <div className="bg-intro-surface/92 px-8 py-10 text-center backdrop-blur-md supports-[backdrop-filter]:bg-intro-surface/85 md:px-12 md:py-12">
+          <div className="bg-intro-surface/92 px-6 py-8 text-center backdrop-blur-md supports-[backdrop-filter]:bg-intro-surface/85 max-md:px-6 max-md:py-8 md:px-12 md:py-12">
             <h2 className="intro-title text-[clamp(1.75rem,4.5vw,2.75rem)] font-medium tracking-[0.14em] text-intro-ink uppercase">
               {intro.title}
             </h2>

@@ -40,7 +40,7 @@ export function CompareSection() {
           scrollTrigger: {
             trigger: section,
             start: "top top",
-            end: desktop ? "+=180%" : "+=60%",
+            end: desktop ? "+=180%" : "+=100%",
             pin: true,
             scrub: true,
             anticipatePin: 1,
@@ -68,16 +68,16 @@ export function CompareSection() {
           {compare.title}
         </h2>
 
-        <div className="mt-6 grid min-h-0 flex-1 grid-cols-1 content-center gap-8 sm:mt-8 sm:grid-cols-2 sm:items-stretch sm:gap-0 lg:mt-10 lg:grid-cols-3">
+        <div className="mt-6 grid min-h-0 flex-1 grid-cols-1 content-center gap-10 max-md:gap-10 sm:mt-8 sm:grid-cols-2 sm:items-stretch sm:gap-0 lg:mt-10 lg:grid-cols-3">
           {compare.items.map((item, i) => (
             <article
               key={item.id}
               className={[
                 "compare-col flex min-h-0 flex-col items-center px-4 text-center sm:px-5 lg:px-4",
-                i > 0 ? "sm:border-l sm:border-compare-ink/20" : "",
+                i > 0 ? "max-md:border-t max-md:border-compare-ink/20 max-md:pt-10 sm:border-l sm:border-t-0 sm:border-compare-ink/20 sm:pt-0" : "",
               ].join(" ")}
             >
-              <div className="relative mx-auto aspect-[5760/3652] w-full max-w-[min(200px,24vw)] shrink-0 lg:max-w-[220px]">
+              <div className="relative mx-auto aspect-[5760/3652] w-full max-w-[min(200px,52vw)] shrink-0 max-md:max-w-[min(200px,52vw)] sm:max-w-[min(200px,24vw)] lg:max-w-[220px]">
                 {"images" in item ? (
                   item.images.map((img, layerIndex) => (
                     <div

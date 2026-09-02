@@ -467,12 +467,14 @@ function IsometricVisual({
   hotspotsRevealed?: boolean;
 }) {
   const isStacked = Boolean(unit.images?.length);
-  const sharedWidth =
-    "mx-auto w-full max-w-[min(560px,78vw)] md:max-w-none md:flex-1";
+  const sharedWidth = "mx-auto w-full max-w-[94vw] md:max-w-none md:flex-1";
+  const mobileHeight = "h-[min(44svh,400px)] md:h-auto";
 
   if (!isStacked && unit.image) {
     return (
-      <div className={`relative ${sharedWidth} aspect-[5760/3652]`}>
+      <div
+        className={`relative ${sharedWidth} ${mobileHeight} md:aspect-[5760/3652]`}
+      >
         <Image
           src={unit.image.src}
           alt={unit.image.alt}
@@ -494,9 +496,9 @@ function IsometricVisual({
   if (!unit.images?.length) return null;
 
   return (
-    <div className={`relative ${sharedWidth}`}>
-      <div className="relative w-full aspect-[5760/5150]">
-        <div className="absolute inset-x-0 bottom-0 aspect-[5760/3652]">
+    <div className={`relative ${sharedWidth} ${mobileHeight}`}>
+      <div className="relative h-full w-full md:aspect-[5760/5150]">
+        <div className="absolute inset-0 md:inset-x-0 md:bottom-0 md:top-auto md:aspect-[5760/3652]">
           <StackedIsometricVisual
             images={unit.images}
             unit={unit}
@@ -512,24 +514,24 @@ function IsometricVisual({
 function IsoPanelCopy({ unit }: { unit: IsoUnit }) {
   return (
     <>
-      <h2 className="text-[clamp(1.5rem,3vw,2.35rem)] leading-none font-medium tracking-[0.1em] text-compare-ink uppercase">
+      <h2 className="text-[clamp(1.35rem,5vw,2.35rem)] leading-none font-medium tracking-[0.1em] text-compare-ink uppercase max-md:text-[1.35rem]">
         {unit.title}
       </h2>
 
-      <div className="mt-5 space-y-1 text-[0.82rem] leading-snug font-medium text-compare-ink md:text-[0.9rem]">
+      <div className="mt-3 space-y-0.5 text-[0.78rem] leading-snug font-medium text-compare-ink max-md:mt-2 md:mt-5 md:text-[0.9rem]">
         <p>{unit.interior} interiores</p>
         <p>{unit.exterior} exteriores</p>
       </div>
 
-      <p className="mt-5 text-[0.72rem] leading-[1.65] font-light text-compare-ink/80 md:text-[0.78rem]">
+      <p className="mt-3 line-clamp-2 text-[0.68rem] leading-[1.5] font-light text-compare-ink/80 max-md:mt-2 md:mt-5 md:line-clamp-none md:text-[0.78rem]">
         {unit.rooms.join(" | ")}
       </p>
-      <p className="mt-2 text-[0.72rem] leading-[1.65] font-light text-compare-ink/80 md:text-[0.78rem]">
+      <p className="mt-1 line-clamp-2 text-[0.68rem] leading-[1.5] font-light text-compare-ink/80 md:mt-2 md:line-clamp-none md:text-[0.78rem]">
         {unit.amenities.join(" | ")}
       </p>
 
-      <div className="mt-8 border-t border-compare-ink/25 pt-4">
-        <p className="text-[0.72rem] tracking-[0.18em] text-compare-ink/70 uppercase md:text-[0.78rem]">
+      <div className="mt-4 border-t border-compare-ink/25 pt-3 max-md:mt-3 md:mt-8 md:pt-4">
+        <p className="text-[0.68rem] tracking-[0.18em] text-compare-ink/70 uppercase md:text-[0.78rem]">
           {unit.status}
         </p>
       </div>
@@ -640,6 +642,16 @@ export function UnitExploreSection() {
   const [mountPano, setMountPano] = useState(false);
   const [hotspotEditMode, setHotspotEditMode] = useState(false);
   const [hotspotsRevealed, setHotspotsRevealed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [panoExplore, setPanoExplore] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     setHotspotEditMode(isHotspotEditMode());
@@ -653,7 +665,8 @@ export function UnitExploreSection() {
       revealed = progress < end;
     } else {
       const start = isoHotspotsStartRef.current;
-      const revealEnd = start + 0.04;
+      const mobile = !window.matchMedia("(min-width: 768px)").matches;
+      const revealEnd = start + (mobile ? 0.08 : 0.04);
       revealed =
         progress >= revealEnd && progress < end;
     }
@@ -818,7 +831,7 @@ export function UnitExploreSection() {
       setPhase("iso");
       setSheetMode(false);
 
-      const pinEnd = desktop ? "+=460%" : "+=320%";
+      const pinEnd = desktop ? "+=460%" : "+=260%";
 
       let tourStartProgress = 0.3;
       let sheetStartProgress = 0.58;
@@ -839,6 +852,7 @@ export function UnitExploreSection() {
             if (p < tourStartProgress) {
               setPhase((prev) => (prev === "iso" ? prev : "iso"));
               setActive((prev) => (prev ? false : prev));
+              setPanoExplore((prev) => (prev ? false : prev));
             } else if (p < sheetStartProgress) {
               setPhase((prev) => (prev === "tour" ? prev : "tour"));
               setActive(true);
@@ -847,6 +861,7 @@ export function UnitExploreSection() {
               setPhase((prev) => (prev === "sheet" ? prev : "sheet"));
               setActive(true);
               setSheetMode(true);
+              setPanoExplore((prev) => (prev ? false : prev));
             }
           },
         },
@@ -1011,6 +1026,8 @@ export function UnitExploreSection() {
 
   const darkUi = phase !== "iso";
   const isTourInteractive = phase === "tour" && !sheetMode;
+  const panoRotateEnabled =
+    isTourInteractive && (!isMobile || panoExplore);
 
   const unitSelectorButtons = isoUnits.map((u) => {
     const selected = u.id === unitId;
@@ -1037,6 +1054,19 @@ export function UnitExploreSection() {
 
   if (!isoUnit || !space) return null;
 
+  const mobileUnitTabs = (
+    <div
+      className={[
+        "absolute inset-x-0 top-0 z-50 flex gap-2 overflow-x-auto border-b px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden",
+        phase === "iso"
+          ? "border-compare-ink/15 bg-[#e8e4d9]"
+          : "border-white/10 bg-[#0c0e0a]",
+      ].join(" ")}
+    >
+      {unitSelectorButtons}
+    </div>
+  );
+
   return (
     <section
       ref={sectionRef}
@@ -1046,18 +1076,20 @@ export function UnitExploreSection() {
     >
       <div ref={bgRef} className="absolute inset-0" aria-hidden />
 
+      {mobileUnitTabs}
+
       {/* Fase isométrica */}
       <div
         ref={isoLayerRef}
-        className="absolute inset-0 z-[1]"
+        className="absolute inset-0 z-[1] max-md:pt-14"
         aria-hidden={phase !== "iso"}
       >
-        <div className="flex h-full flex-col px-5 pt-16 pb-20 max-md:gap-4 md:flex-row md:items-center md:gap-10 md:px-10 md:pt-6 md:pb-16 lg:gap-16 lg:px-14">
+        <div className="flex h-full flex-col px-5 pb-6 max-md:gap-3 max-md:pt-2 md:flex-row md:items-center md:gap-10 md:px-10 md:pt-6 md:pb-16 lg:gap-16 lg:px-14">
           <div
             ref={isoVisualRef}
-            className="flex max-h-[34svh] min-h-0 flex-1 items-center justify-center max-md:max-h-[32svh] md:justify-end md:pr-4"
+            className="flex min-h-0 shrink-0 items-center justify-center max-md:h-[min(44svh,400px)] md:max-h-[34svh] md:flex-1 md:justify-end md:pr-4"
           >
-            <div className="relative w-full">
+            <div className="relative h-full w-full">
               {leavingUnit && (
                 <div
                   ref={outgoingVisualRef}
@@ -1083,7 +1115,7 @@ export function UnitExploreSection() {
 
           <div
             ref={isoPanelRef}
-            className="relative mt-6 w-full shrink-0 md:mt-0 md:w-[min(22rem,34vw)] lg:w-[min(24rem,30vw)]"
+            className="relative w-full shrink-0 max-md:min-h-0 max-md:overflow-hidden md:mt-0 md:w-[min(22rem,34vw)] lg:w-[min(24rem,30vw)]"
           >
             {leavingUnit && (
               <div
@@ -1118,7 +1150,7 @@ export function UnitExploreSection() {
             <PanoramaCanvas
               src={space.src}
               yaw={space.yaw}
-              interactionEnabled={isTourInteractive}
+              interactionEnabled={panoRotateEnabled}
             />
           ) : (
             <div className="absolute inset-0 bg-[#0c0e0a]" aria-hidden />
@@ -1150,17 +1182,54 @@ export function UnitExploreSection() {
             sheetMode ? "max-md:invisible max-md:opacity-0" : "",
           ].join(" ")}
         >
-          <div className="absolute top-0 left-0 max-w-[min(24rem,calc(100vw-2.5rem))] px-5 pt-24 md:max-w-[min(22rem,70vw)] md:px-8 md:pt-28">
-            <h2 className="text-[clamp(1.15rem,2.4vw,1.65rem)] leading-tight font-medium tracking-[0.14em] text-white uppercase">
-              {space.title}
-            </h2>
-            <p className="mt-3 max-w-[18rem] text-[0.72rem] leading-relaxed tracking-[0.08em] text-white/78 md:text-[0.78rem]">
-              Arrastra para explorar. Usa el botón de salida para volver al
-              scroll.
-            </p>
+          <div className="absolute top-14 right-0 left-0 max-w-none px-5 pt-3 md:top-0 md:max-w-[min(22rem,70vw)] md:px-8 md:pt-28">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[clamp(1rem,4vw,1.65rem)] leading-tight font-medium tracking-[0.14em] text-white uppercase">
+                  {space.title}
+                </h2>
+                <p className="mt-1.5 max-w-[14rem] text-[0.68rem] leading-relaxed tracking-[0.08em] text-white/78 md:mt-3 md:max-w-[18rem] md:text-[0.78rem]">
+                  {isMobile
+                    ? panoExplore
+                      ? "Arrastra para mirar alrededor."
+                      : "Toca «Explorar 360» o sigue bajando."
+                    : "Arrastra para explorar. Usa el botón de salida para volver al scroll."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPanoExplore((value) => !value)}
+                className="pointer-events-auto inline-flex min-h-11 shrink-0 items-center rounded-full border border-white/70 bg-black/55 px-3 py-2 text-[0.62rem] font-medium tracking-[0.1em] text-white uppercase backdrop-blur-sm transition-colors hover:border-white hover:bg-black/70 md:hidden"
+                aria-pressed={panoExplore}
+                tabIndex={sheetMode ? -1 : 0}
+              >
+                {panoExplore ? "Detener" : "Explorar 360"}
+              </button>
+            </div>
+
+            {spaces.length > 1 ? (
+              <div className="pointer-events-auto mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
+                {spaces.map((s, spaceIdx) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => goSpace(spaceIdx)}
+                    className={[
+                      "min-h-9 shrink-0 rounded-full border px-3 py-1.5 text-[0.62rem] tracking-[0.1em] uppercase transition-colors",
+                      spaceIdx === index
+                        ? "border-white bg-white/15 text-white"
+                        : "border-white/45 text-white/80 hover:border-white hover:bg-white/10",
+                    ].join(" ")}
+                    aria-current={spaceIdx === index ? "true" : undefined}
+                  >
+                    {s.title}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-          <div className="absolute top-5 right-5 md:top-7 md:right-7">
+          <div className="absolute top-7 right-7 max-md:hidden">
             <button
               type="button"
               onClick={exitTourToCompare}
@@ -1172,16 +1241,16 @@ export function UnitExploreSection() {
             </button>
           </div>
 
-          {spaces.length > 1 && prev && next && (
+          {spaces.length > 1 && prev && next ? (
             <>
               <button
                 type="button"
                 onClick={() => goSpace(index - 1)}
-                className="pointer-events-auto absolute left-3 bottom-26 flex min-h-11 items-center gap-2 rounded-full border border-white/35 bg-black/18 px-3 py-2 text-left text-white/95 backdrop-blur-sm transition-colors hover:border-white hover:bg-black/28 md:top-1/2 md:bottom-auto md:left-4 md:-translate-y-1/2 md:flex-col md:items-center md:gap-2 md:border-transparent md:bg-transparent md:px-2 md:py-3"
+                className="pointer-events-auto absolute top-1/2 left-4 hidden -translate-y-1/2 flex-col items-center gap-2 px-2 py-3 text-white/95 transition-colors hover:text-white md:flex"
                 aria-label={`Ir a ${prev.title}`}
                 tabIndex={sheetMode ? -1 : 0}
               >
-                <span className="text-[0.66rem] font-medium tracking-[0.16em] uppercase md:[writing-mode:vertical-rl] md:rotate-180 md:text-xs">
+                <span className="text-xs font-medium tracking-[0.16em] uppercase [writing-mode:vertical-rl] rotate-180">
                   {prev.title}
                 </span>
                 <ChevronSide direction="prev" />
@@ -1190,29 +1259,25 @@ export function UnitExploreSection() {
               <button
                 type="button"
                 onClick={() => goSpace(index + 1)}
-                className="pointer-events-auto absolute right-3 bottom-26 flex min-h-11 items-center gap-2 rounded-full border border-white/35 bg-black/18 px-3 py-2 text-right text-white/95 backdrop-blur-sm transition-colors hover:border-white hover:bg-black/28 md:top-1/2 md:bottom-auto md:right-4 md:-translate-y-1/2 md:flex-col md:items-center md:gap-2 md:border-transparent md:bg-transparent md:px-2 md:py-3"
+                className="pointer-events-auto absolute top-1/2 right-4 hidden -translate-y-1/2 flex-col items-center gap-2 px-2 py-3 text-white/95 transition-colors hover:text-white md:flex"
                 aria-label={`Ir a ${next.title}`}
                 tabIndex={sheetMode ? -1 : 0}
               >
-                <span className="text-[0.66rem] font-medium tracking-[0.16em] uppercase md:[writing-mode:vertical-rl] md:rotate-180 md:text-xs">
+                <span className="text-xs font-medium tracking-[0.16em] uppercase [writing-mode:vertical-rl] rotate-180">
                   {next.title}
                 </span>
                 <ChevronSide direction="next" />
               </button>
             </>
-          )}
+          ) : null}
         </div>
 
         <div
           ref={sheetUiRef}
-          className={`absolute inset-0 z-20 ${sheetMode ? "" : "pointer-events-none"}`}
+          className={`absolute inset-0 z-20 max-md:pt-14 ${sheetMode ? "" : "pointer-events-none"}`}
           aria-hidden={!sheetMode}
         >
-          <div className="sticky top-0 z-30 flex gap-2 overflow-x-auto border-b border-white/10 bg-[#0c0e0a] px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
-            {unitSelectorButtons}
-          </div>
-
-          <div className="flex h-full flex-col overflow-y-auto px-5 pt-4 pb-10 max-md:pb-24 md:justify-center md:overflow-hidden md:px-10 md:pt-6 md:pb-16 lg:px-14">
+          <div className="flex h-full flex-col overflow-y-auto px-5 pt-4 pb-10 max-md:pb-[max(1.5rem,env(safe-area-inset-bottom))] md:justify-center md:overflow-hidden md:px-10 md:pt-6 md:pb-16 lg:px-14">
             <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch gap-8 md:h-full md:flex-row md:items-center md:justify-center md:gap-8 lg:gap-12">
               <div className="flex w-full shrink-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] max-md:justify-start md:w-auto md:items-end md:justify-center md:overflow-visible md:pb-0 md:pt-0 md:gap-5 [&::-webkit-scrollbar]:hidden">
                 {(sheet.plans ?? [sheet.plan]).map((plan) => (
@@ -1312,14 +1377,8 @@ export function UnitExploreSection() {
         </a>
       </div>
 
-      {/* Selector — desktop + mobile iso; en ficha mobile va dentro del sheet */}
-      <div
-        className={[
-          "absolute bottom-6 left-5 z-40 flex flex-col items-start gap-2.5 md:bottom-8 md:left-8",
-          phase === "tour" && !sheetMode ? "max-md:hidden" : "",
-          sheetMode ? "max-md:hidden" : "",
-        ].join(" ")}
-      >
+      {/* Selector — solo desktop */}
+      <div className="absolute bottom-8 left-8 z-40 hidden flex-col items-start gap-2.5 md:flex">
         {unitSelectorButtons}
       </div>
     </section>

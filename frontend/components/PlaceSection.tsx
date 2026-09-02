@@ -36,7 +36,7 @@ export function PlaceSection() {
       const desktop = window.matchMedia("(min-width: 768px)").matches;
       const endFrame = desktop
         ? { top: "8%", left: "52%", width: "46%", height: "84%" }
-        : { top: "4%", left: "5%", width: "90%", height: "34%" };
+        : { top: "4%", left: "5%", width: "90%", height: "30%" };
 
       if (reduce) {
         gsap.set(frame, endFrame);
@@ -82,8 +82,8 @@ export function PlaceSection() {
       <div className="place-grain" aria-hidden />
 
       <div className="relative min-h-[100svh] w-full">
-        <div className="absolute inset-0 z-10 flex items-end px-[max(1.25rem,calc((100%-var(--content))/2))] pt-22 pb-10 md:items-center md:py-0">
-          <div className="place-copy w-full max-w-lg md:w-[min(46%,32rem)]">
+        <div className="absolute inset-0 z-10 flex items-end px-[max(1.25rem,calc((100%-var(--content))/2))] pt-16 pb-8 max-md:pb-8 md:items-center md:py-0">
+          <div className="place-copy w-full max-w-lg max-md:max-h-[45svh] max-md:overflow-y-auto md:w-[min(46%,32rem)] md:max-h-none md:overflow-visible">
             <h2
               ref={titleRef}
               className="text-[clamp(1.65rem,3.8vw,2.65rem)] leading-[1.15] font-medium tracking-[0.08em] text-place-ink uppercase"

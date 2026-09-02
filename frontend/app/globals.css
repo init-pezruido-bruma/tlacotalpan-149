@@ -27,6 +27,12 @@
   --content: min(1120px, calc(100% - 2.5rem));
 }
 
+@media (max-width: 767px) {
+  :root {
+    --content: min(1120px, calc(100% - 2rem));
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

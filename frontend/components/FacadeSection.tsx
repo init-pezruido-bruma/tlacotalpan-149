@@ -80,7 +80,7 @@ export function FacadeSection() {
           id: "fachada",
           trigger: section,
           start: "top top",
-          end: desktop ? "+=420%" : "+=240%",
+          end: desktop ? "+=420%" : "+=180%",
           pin: true,
           scrub: true,
           anticipatePin: 1,
@@ -175,11 +175,11 @@ export function FacadeSection() {
               key={spot.id}
               type="button"
               onClick={() => goToIsometric(spot.unitId)}
-              className="absolute cursor-pointer rounded-full focus-visible:outline-white"
+              className="absolute h-11 w-11 -translate-x-1/2 -translate-y-1/2 cursor-pointer rounded-full focus-visible:outline-white md:h-auto md:w-auto md:translate-x-0 md:translate-y-0"
               style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
               aria-label={`Ver recorrido de ${spot.label}`}
             >
-              <span className="absolute bottom-[calc(100%+0.55rem)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#f3f0e8]/92 px-2.5 py-1 text-[0.62rem] font-medium tracking-[0.14em] text-[#1c1c16] uppercase md:text-[0.68rem]">
+              <span className="absolute bottom-[calc(100%+0.55rem)] left-1/2 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-md bg-[#f3f0e8]/92 px-2.5 py-1 text-center text-[0.62rem] font-medium tracking-[0.14em] text-[#1c1c16] uppercase max-md:whitespace-normal md:whitespace-nowrap md:text-[0.68rem]">
                 {spot.label}
               </span>
               <span className="absolute left-1/2 top-0 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--hero-green-deep)] text-white shadow-[0_1px_6px_rgba(0,0,0,0.28)] transition-transform hover:scale-110 md:h-9 md:w-9">

@@ -31,7 +31,7 @@ export function ContactSection() {
 export function SiteFooter() {
   return (
     <footer className="footer-surface relative isolate overflow-hidden">
-      <div className="relative z-10 mx-auto flex min-h-[min(52svh,28rem)] w-[var(--content)] flex-col justify-end gap-10 pt-24 pb-10 md:min-h-[min(48svh,26rem)] md:flex-row md:items-end md:justify-between md:gap-12 md:pt-28 md:pb-12">
+      <div className="relative z-10 mx-auto flex min-h-[min(52svh,28rem)] w-[var(--content)] flex-col justify-end gap-10 pt-20 pb-10 max-md:pt-20 md:min-h-[min(48svh,26rem)] md:flex-row md:items-end md:justify-between md:gap-12 md:pt-28 md:pb-12">
         <div className="max-w-3xl">
           <p className="text-[0.68rem] font-medium tracking-[0.28em] text-hero-ink/90 uppercase md:text-[0.72rem]">
             {footer.location}

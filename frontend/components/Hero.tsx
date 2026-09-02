@@ -24,18 +24,18 @@ export function Hero() {
           height={1294}
           priority
           sizes="(max-width: 767px) 220vw, 160vw"
-          className="absolute top-0 right-0 h-auto w-[min(220vw,2400px)] max-w-none opacity-[0.92] md:w-[min(200vw,2400px)]"
+          className="absolute top-0 right-0 h-auto w-[min(220vw,2400px)] max-w-none opacity-80 md:w-[min(200vw,2400px)] md:opacity-[0.92]"
           style={{ transform: "translate(40%, -10%)" }}
         />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] w-[var(--content)] flex-col pt-16 pb-10 md:pt-11 md:pb-12">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] w-[var(--content)] flex-col pt-14 pb-10 max-md:pt-14 md:pt-11 md:pb-12">
         <p className="hero-brand text-[0.68rem] font-medium tracking-[0.3em] text-hero-ink uppercase md:text-[0.75rem]">
           {hero.location}
         </p>
 
         <div className="mt-auto max-w-3xl pb-2 md:pb-0">
-          <h1 className="hero-headline text-[clamp(2.4rem,7vw,4.85rem)] leading-[1.04] font-medium tracking-[0.035em] text-hero-ink uppercase">
+          <h1 className="hero-headline text-[clamp(2rem,9vw,2.4rem)] leading-[1.04] font-medium tracking-[0.035em] text-hero-ink uppercase md:text-[clamp(2.4rem,7vw,4.85rem)]">
             {hero.brand}
           </h1>
           <p className="hero-support mt-4 max-w-[22rem] text-[0.92rem] leading-relaxed font-light text-hero-ink/90 md:mt-5 md:max-w-md md:text-base">
