@@ -12,6 +12,7 @@ export const UNIT_SECTION_ID = "recorridos";
 
 export type TourEventDetail = {
   unitId: string;
+  spaceId?: string;
 };
 
 export type IsometricEventDetail = {
@@ -133,12 +134,14 @@ export function goToIsometric(unitId: string) {
   });
 }
 
-export function goToTour(unitId: string) {
+export function goToTour(unitId: string, spaceId?: string) {
   lockFacadeVideo();
   const y = jumpToSection(UNIT_SECTION_ID, tourScrollProgress);
   setUnitParam(unitId);
   window.dispatchEvent(
-    new CustomEvent<TourEventDetail>(TOUR_EVENT, { detail: { unitId } }),
+    new CustomEvent<TourEventDetail>(TOUR_EVENT, {
+      detail: { unitId, spaceId },
+    }),
   );
   requestAnimationFrame(() => {
     const scroller = document.scrollingElement ?? document.documentElement;

@@ -118,13 +118,18 @@ export function Renders360Section() {
   }, [sheetMode]);
 
   useEffect(() => {
-    const applyUnit = (unitKey: string | null) => {
+    const applyUnit = (unitKey: string | null, preferredSpaceId?: string | null) => {
       if (!unitKey) return;
       const match = units.find((u) => u.id === unitKey);
       if (!match) return;
+      const nextIndex = resolveSpaceIndex(
+        match,
+        preferredSpaceId ?? null,
+        0,
+      );
       setUnitId(match.id);
-      setSpaceIndex(0);
-      setSpaceId(match.spaces[0]?.id ?? null);
+      setSpaceIndex(nextIndex);
+      setSpaceId(match.spaces[nextIndex]?.id ?? null);
       setActive(true);
     };
 
@@ -133,7 +138,8 @@ export function Renders360Section() {
     };
 
     const onTour = (event: Event) => {
-      applyUnit((event as CustomEvent<TourEventDetail>).detail?.unitId ?? null);
+      const detail = (event as CustomEvent<TourEventDetail>).detail;
+      applyUnit(detail?.unitId ?? null, detail?.spaceId ?? null);
     };
 
     applyUnitFromUrl();

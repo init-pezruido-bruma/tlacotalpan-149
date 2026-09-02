@@ -9,13 +9,16 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type RefObject,
 } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { panoramas, unitIsometrics } from "../content";
+import { unitHotspots } from "../content/unitHotspots";
 import {
   exitTourToCompare,
+  goToTour,
   ISOMETRIC_EVENT,
   setIsoScrollProgress,
   setTourScrollProgress,
@@ -25,6 +28,7 @@ import {
   type TourEventDetail,
 } from "../lib/goToTour";
 import { scheduleScrollRefresh } from "../lib/scrollRefresh";
+import { isHotspotEditMode } from "../lib/hotspotEditMode";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -45,6 +49,14 @@ type StackImage = {
   stack: { x: number; y: number };
 };
 
+type Hotspot = {
+  label: string;
+  spaceId: string;
+  x: number;
+  y: number;
+  floor?: number;
+};
+
 type IsoUnit = {
   id: string;
   label: string;
@@ -57,6 +69,7 @@ type IsoUnit = {
   image?: { src: string; alt: string };
   images?: readonly StackImage[];
   flipped?: boolean;
+  hotspots?: readonly Hotspot[];
 };
 
 type Space = {
@@ -123,10 +136,116 @@ function floorIndexFromPointer(yRatio: number) {
   return 0;
 }
 
+function EyeIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M2.5 12s3.8-7 9.5-7 9.5 7 9.5 7-3.8 7-9.5 7-9.5-7-9.5-7Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="2.75"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+    </svg>
+  );
+}
+
+function withUnitHotspots(unit: IsoUnit): IsoUnit {
+  const hotspots = unitHotspots[unit.id];
+  if (!hotspots?.length) return unit;
+  return { ...unit, hotspots };
+}
+
+function hotspotsFingerprint(hotspots?: readonly Hotspot[]) {
+  if (!hotspots?.length) return "none";
+  return hotspots
+    .map((spot) => `${spot.floor ?? ""}:${spot.x}:${spot.y}`)
+    .join("|");
+}
+
+function IsometricHotspots({
+  unit,
+  floor,
+  activeFloor = null,
+  editMode = false,
+}: {
+  unit: IsoUnit;
+  floor?: number;
+  activeFloor?: number | null;
+  editMode?: boolean;
+}) {
+  const spots =
+    unit.hotspots?.filter((spot) =>
+      floor !== undefined
+        ? spot.floor === floor
+        : spot.floor === undefined,
+    ) ?? [];
+
+  if (!spots.length) return null;
+
+  const flipped = unit.flipped ?? false;
+  const floorFocus = !editMode && activeFloor !== null;
+  const isFocused = floor === undefined || !floorFocus || activeFloor === floor;
+
+  return (
+    <>
+      {spots.map((spot) => {
+        const x = flipped ? 100 - spot.x : spot.x;
+        const spotKey =
+          spot.floor !== undefined
+            ? `${spot.floor}-${spot.spaceId}-${spot.x}-${spot.y}`
+            : `${spot.spaceId}-${spot.x}-${spot.y}`;
+
+        return (
+          <button
+            key={spotKey}
+            type="button"
+            onClick={() => goToTour(unit.id, spot.spaceId)}
+            className={[
+              "absolute z-10 min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-[opacity,transform] duration-300",
+              isFocused
+                ? "pointer-events-auto opacity-100"
+                : "pointer-events-none opacity-[0.28]",
+            ].join(" ")}
+            style={{ left: `${x}%`, top: `${spot.y}%` }}
+            aria-label={`Ver recorrido 360 — ${spot.label}`}
+            tabIndex={isFocused ? 0 : -1}
+          >
+            <span className="pointer-events-none absolute bottom-[calc(100%+0.45rem)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#f3f0e8]/94 px-2.5 py-1 text-[0.62rem] font-medium tracking-[0.14em] text-[#1c1c16] uppercase md:text-[0.68rem]">
+              {editMode && spot.floor !== undefined
+                ? `${spot.label} · ${spot.x},${spot.y} · f${spot.floor}`
+                : spot.label}
+            </span>
+            <span className="pointer-events-none absolute top-1/2 left-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--hero-green-deep)] text-white shadow-[0_1px_6px_rgba(0,0,0,0.28)] transition-transform hover:scale-110">
+              <EyeIcon />
+            </span>
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
 function StackedIsometricVisual({
   images,
+  unit,
+  editMode = false,
 }: {
   images: readonly StackImage[];
+  unit: IsoUnit;
+  editMode?: boolean;
 }) {
   const stackRef = useRef<HTMLDivElement>(null);
   const [activeFloor, setActiveFloor] = useState<number | null>(null);
@@ -162,12 +281,15 @@ function StackedIsometricVisual({
       className="absolute inset-0 cursor-default"
       onMouseMove={(event) => pickFloor(event.clientY)}
       onMouseLeave={() => setActiveFloor(null)}
+      onPointerDown={(event) => {
+        if (event.pointerType !== "mouse") pickFloor(event.clientY);
+      }}
     >
       {images.map((img, layerIndex) => {
         const isActive = activeFloor === layerIndex;
-        const isDimmed = activeFloor !== null && !isActive;
+        const isDimmed = !editMode && activeFloor !== null && !isActive;
         const lift =
-          isActive && !reduceMotion
+          isActive && !reduceMotion && !editMode
             ? " translateY(-3.5%) scale-[1.035]"
             : "";
 
@@ -175,7 +297,7 @@ function StackedIsometricVisual({
           <div
             key={img.src}
             className={[
-              "pointer-events-none absolute inset-0 origin-bottom transition-[transform,opacity,filter] duration-300 ease-out",
+              "absolute inset-0 origin-bottom transition-[transform,opacity,filter] duration-300 ease-out",
               isDimmed ? "opacity-[0.62] brightness-[0.94] saturate-[0.88]" : "",
               isActive
                 ? "brightness-[1.05] drop-shadow-[0_14px_28px_rgba(0,0,0,0.2)]"
@@ -186,13 +308,21 @@ function StackedIsometricVisual({
               transform: `translate(${img.stack.x}%, ${img.stack.y}%)${lift}`,
             }}
           >
-            <Image
-              src={img.src}
-              alt={img.alt}
-              fill
-              sizes="(max-width: 768px) 88vw, 52vw"
-              className="object-contain object-bottom"
-              onLoad={scheduleScrollRefresh}
+            <div className="pointer-events-none absolute inset-0">
+              <Image
+                src={img.src}
+                alt={img.alt}
+                fill
+                sizes="(max-width: 768px) 88vw, 52vw"
+                className="object-contain object-bottom"
+                onLoad={scheduleScrollRefresh}
+              />
+            </div>
+            <IsometricHotspots
+              unit={unit}
+              floor={layerIndex}
+              activeFloor={activeFloor}
+              editMode={editMode}
             />
           </div>
         );
@@ -211,10 +341,32 @@ function StackedIsometricVisual({
   );
 }
 
-function IsometricVisual({ unit }: { unit: IsoUnit }) {
+function IsometricVisual({
+  unit,
+  hotspotsRef,
+  editMode = false,
+}: {
+  unit: IsoUnit;
+  hotspotsRef?: RefObject<HTMLDivElement | null>;
+  editMode?: boolean;
+}) {
   const isStacked = Boolean(unit.images?.length);
   const sharedWidth =
     "mx-auto w-full max-w-[min(560px,78vw)] md:max-w-none md:flex-1";
+
+  const hotspotsLayer =
+    unit.hotspots?.length && hotspotsRef ? (
+      <div
+        ref={hotspotsRef}
+        data-iso-hotspots=""
+        className="pointer-events-none absolute inset-0 z-10"
+        aria-hidden
+      >
+        <IsometricHotspots unit={unit} editMode={editMode} />
+      </div>
+    ) : unit.hotspots?.length ? (
+      <IsometricHotspots unit={unit} editMode={editMode} />
+    ) : null;
 
   if (!isStacked && unit.image) {
     return (
@@ -228,18 +380,42 @@ function IsometricVisual({ unit }: { unit: IsoUnit }) {
           priority
           onLoad={scheduleScrollRefresh}
         />
+        {hotspotsLayer}
       </div>
     );
   }
 
   if (!unit.images?.length) return null;
 
+  const stackViewport = (
+    <div className="absolute inset-x-0 bottom-0 aspect-[5760/3652]">
+      <StackedIsometricVisual
+        images={unit.images}
+        unit={unit}
+        editMode={editMode}
+      />
+    </div>
+  );
+
   return (
     <div className={`relative ${sharedWidth}`}>
       <div className="relative w-full aspect-[5760/5150]">
-        <div className="absolute inset-x-0 bottom-0 aspect-[5760/3652]">
-          <StackedIsometricVisual images={unit.images} />
-        </div>
+        {hotspotsRef ? (
+          <div
+            ref={hotspotsRef}
+            data-iso-hotspots=""
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 aspect-[5760/3652]"
+            aria-hidden
+          >
+            <StackedIsometricVisual
+              images={unit.images}
+              unit={unit}
+              editMode={editMode}
+            />
+          </div>
+        ) : (
+          stackViewport
+        )}
       </div>
     </div>
   );
@@ -357,6 +533,9 @@ export function UnitExploreSection() {
   const tourUiRef = useRef<HTMLDivElement>(null);
   const sheetUiRef = useRef<HTMLDivElement>(null);
   const compareRef = useRef<HTMLAnchorElement>(null);
+  const isoHotspotsRef = useRef<HTMLDivElement>(null);
+  const isoHotspotsStartRef = useRef(0);
+  const tourStartProgressRef = useRef(0.3);
 
   const initialTourUnit =
     tourUnits.find((u) => u.spaces.length > 0) ?? tourUnits[0];
@@ -371,17 +550,60 @@ export function UnitExploreSection() {
     initialTourUnit.spaces[0]?.id ?? null,
   );
   const [mountPano, setMountPano] = useState(false);
+  const [hotspotEditMode, setHotspotEditMode] = useState(false);
 
-  const applyUnit = useCallback((unitKey: string | null) => {
-    if (!unitKey) return;
-    const match = tourUnits.find((u) => u.id === unitKey);
-    if (!match) return;
-    setLeavingId(null);
-    setUnitId(match.id);
-    setSpaceIndex(0);
-    setSpaceId(match.spaces[0]?.id ?? null);
-    setActive(true);
+  useEffect(() => {
+    setHotspotEditMode(isHotspotEditMode());
   }, []);
+
+  const syncIsoHotspots = useCallback((progress: number) => {
+    const el = isoHotspotsRef.current;
+    if (!el) return;
+
+    const end = tourStartProgressRef.current;
+    let opacity = 0;
+
+    if (isHotspotEditMode()) {
+      opacity = progress < end ? 1 : 0;
+    } else {
+      const start = isoHotspotsStartRef.current;
+      const revealEnd = start + 0.04;
+      opacity =
+        progress < start
+          ? 0
+          : progress >= end
+            ? 0
+            : progress < revealEnd
+              ? gsap.utils.mapRange(start, revealEnd, 0, 1, progress)
+              : 1;
+    }
+
+    gsap.set(el, { autoAlpha: opacity });
+    el.style.pointerEvents = opacity > 0.35 ? "auto" : "none";
+    el.setAttribute("aria-hidden", opacity > 0.35 ? "false" : "true");
+  }, []);
+
+  const syncIsoHotspotsRef = useRef(syncIsoHotspots);
+  syncIsoHotspotsRef.current = syncIsoHotspots;
+
+  const applyUnit = useCallback(
+    (unitKey: string | null, preferredSpaceId?: string | null) => {
+      if (!unitKey) return;
+      const match = tourUnits.find((u) => u.id === unitKey);
+      if (!match) return;
+      const nextIndex = resolveSpaceIndex(
+        match,
+        preferredSpaceId ?? null,
+        0,
+      );
+      setLeavingId(null);
+      setUnitId(match.id);
+      setSpaceIndex(nextIndex);
+      setSpaceId(match.spaces[nextIndex]?.id ?? null);
+      setActive(true);
+    },
+    [],
+  );
 
   useEffect(() => {
     const applyUnitFromUrl = () => {
@@ -389,9 +611,8 @@ export function UnitExploreSection() {
     };
 
     const onTour = (event: Event) => {
-      applyUnit(
-        (event as CustomEvent<TourEventDetail>).detail?.unitId ?? null,
-      );
+      const detail = (event as CustomEvent<TourEventDetail>).detail;
+      applyUnit(detail?.unitId ?? null, detail?.spaceId ?? null);
     };
 
     const onIsometric = (event: Event) => {
@@ -505,6 +726,7 @@ export function UnitExploreSection() {
       gsap.set(tourUi, { autoAlpha: 1 });
       gsap.set(sheetUi, { autoAlpha: 0 });
       gsap.set(compare, { autoAlpha: 0 });
+      gsap.set("[data-iso-hotspots]", { autoAlpha: 0 });
       setPhase("iso");
       setSheetMode(false);
 
@@ -525,6 +747,7 @@ export function UnitExploreSection() {
           anticipatePin: 1,
           onUpdate: (self) => {
             const p = self.progress;
+            syncIsoHotspotsRef.current(p);
             if (p < tourStartProgress) {
               setPhase((prev) => (prev === "iso" ? prev : "iso"));
               setActive((prev) => (prev ? false : prev));
@@ -545,7 +768,7 @@ export function UnitExploreSection() {
         .to(isoPanel, { autoAlpha: 1, y: 0, duration: 0.4 }, "-=0.25")
         .to({}, { duration: 0.55 })
         .addLabel("isoSettled")
-        .to({}, { duration: 0.35 })
+        .to({}, { duration: desktop ? 1.05 : 0.8 })
         .addLabel("tourStart")
         .to(isoLayer, { autoAlpha: 0, duration: 0.55 })
         .to(tourLayer, { autoAlpha: 1, duration: 0.55 }, "<")
@@ -573,10 +796,18 @@ export function UnitExploreSection() {
         tl.labels.tourStart !== undefined
           ? tl.labels.tourStart / tl.duration()
           : tourStartProgress;
+      tourStartProgressRef.current = tourStartProgress;
       sheetStartProgress =
         tl.labels.sheetStart !== undefined
           ? tl.labels.sheetStart / tl.duration()
           : sheetStartProgress;
+      isoHotspotsStartRef.current =
+        tl.labels.isoSettled !== undefined
+          ? tl.labels.isoSettled / tl.duration()
+          : tourStartProgress * 0.72;
+      syncIsoHotspotsRef.current(
+        ScrollTrigger.getById(UNIT_SECTION_ID)?.progress ?? 0,
+      );
       setTourScrollProgress(
         tl.labels.tourSettled !== undefined
           ? tl.labels.tourSettled / tl.duration()
@@ -635,15 +866,22 @@ export function UnitExploreSection() {
     { dependencies: [unitId, leavingId], scope: sectionRef },
   );
 
-  const isoUnit = useMemo(
-    () => isoUnits.find((u) => u.id === unitId) ?? isoUnits[0],
-    [unitId],
-  );
-
   const tourUnit = useMemo(
     () => tourUnits.find((u) => u.id === unitId) ?? initialTourUnit,
     [unitId, initialTourUnit],
   );
+
+  const isoUnit = withUnitHotspots(
+    isoUnits.find((u) => u.id === unitId) ?? isoUnits[0],
+  );
+  const isoHotspotsKey = hotspotsFingerprint(isoUnit.hotspots);
+
+  useEffect(() => {
+    if (!isHotspotEditMode()) return;
+    syncIsoHotspotsRef.current(
+      ScrollTrigger.getById(UNIT_SECTION_ID)?.progress ?? 0,
+    );
+  }, [isoHotspotsKey, unitId]);
 
   const spaces = tourUnit.spaces;
   const index = resolveSpaceIndex(tourUnit, spaceId, spaceIndex);
@@ -656,10 +894,10 @@ export function UnitExploreSection() {
     : null;
   const sheet = tourUnit.sheet;
 
-  const leavingUnit = useMemo(
-    () => isoUnits.find((u) => u.id === leavingId) ?? null,
-    [leavingId],
-  );
+  const leavingUnit = useMemo(() => {
+    const unit = isoUnits.find((u) => u.id === leavingId) ?? null;
+    return unit ? withUnitHotspots(unit) : null;
+  }, [leavingId]);
 
   const goSpace = useCallback(
     (nextIndex: number) => {
@@ -747,7 +985,11 @@ export function UnitExploreSection() {
                 className="relative z-[2]"
                 style={leavingUnit ? { opacity: 0 } : undefined}
               >
-                <IsometricVisual unit={isoUnit} />
+                <IsometricVisual
+                  unit={isoUnit}
+                  hotspotsRef={isoHotspotsRef}
+                  editMode={hotspotEditMode}
+                />
               </div>
             </div>
           </div>
