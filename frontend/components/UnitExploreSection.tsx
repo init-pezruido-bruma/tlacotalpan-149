@@ -9,13 +9,14 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { panoramas, unitIsometrics } from "../content";
-import { unitHotspots } from "../content/unitHotspots";
+import { unitHotspots, townhouseStackHoverBands } from "../content/unitHotspots";
 import {
   exitTourToCompare,
   goToTour,
@@ -122,18 +123,25 @@ function resolveSpaceIndex(
   return Math.min(fallbackIndex, unit.spaces.length - 1);
 }
 
-/** Bandas verticales (0–1) para detectar hover por piso en el stack. */
-const TOWNHOUSE_FLOOR_BANDS = [
-  { max: 0.34, index: 2 },
-  { max: 0.58, index: 1 },
-  { max: 1, index: 0 },
-] as const;
+function floorIndexFromPointer(
+  yRatio: number,
+  bands: Record<number, { top: number; bottom: number }>,
+) {
+  const matches = Object.entries(bands)
+    .map(([index, band]) => ({
+      index: Number(index),
+      ...band,
+      center: (band.top + band.bottom) / 2,
+    }))
+    .filter(({ top, bottom }) => yRatio >= top && yRatio < bottom);
 
-function floorIndexFromPointer(yRatio: number) {
-  for (const band of TOWNHOUSE_FLOOR_BANDS) {
-    if (yRatio <= band.max) return band.index;
-  }
-  return 0;
+  if (!matches.length) return null;
+
+  matches.sort(
+    (a, b) =>
+      Math.abs(yRatio - a.center) - Math.abs(yRatio - b.center),
+  );
+  return matches[0].index;
 }
 
 function EyeIcon() {
@@ -180,11 +188,13 @@ function IsometricHotspots({
   floor,
   activeFloor = null,
   editMode = false,
+  revealed = false,
 }: {
   unit: IsoUnit;
   floor?: number;
   activeFloor?: number | null;
   editMode?: boolean;
+  revealed?: boolean;
 }) {
   const spots =
     unit.hotspots?.filter((spot) =>
@@ -196,8 +206,9 @@ function IsometricHotspots({
   if (!spots.length) return null;
 
   const flipped = unit.flipped ?? false;
-  const floorFocus = !editMode && activeFloor !== null;
-  const isFocused = floor === undefined || !floorFocus || activeFloor === floor;
+  const floorFocus = activeFloor !== null && floor !== undefined;
+  const isActiveFloor = floor === undefined || !floorFocus || activeFloor === floor;
+  const isVisible = revealed && isActiveFloor;
 
   return (
     <>
@@ -212,16 +223,19 @@ function IsometricHotspots({
           <button
             key={spotKey}
             type="button"
+            data-iso-hotspot
             onClick={() => goToTour(unit.id, spot.spaceId)}
+            onPointerDown={(event) => event.stopPropagation()}
             className={[
-              "absolute z-10 min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-[opacity,transform] duration-300",
-              isFocused
-                ? "pointer-events-auto opacity-100"
-                : "pointer-events-none opacity-[0.28]",
+              "absolute z-10 min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 transition-[opacity,transform] duration-300",
+              isVisible
+                ? "pointer-events-auto cursor-pointer opacity-100"
+                : "pointer-events-none opacity-0",
             ].join(" ")}
             style={{ left: `${x}%`, top: `${spot.y}%` }}
             aria-label={`Ver recorrido 360 — ${spot.label}`}
-            tabIndex={isFocused ? 0 : -1}
+            aria-hidden={!isVisible}
+            tabIndex={isVisible ? 0 : -1}
           >
             <span className="pointer-events-none absolute bottom-[calc(100%+0.45rem)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#f3f0e8]/94 px-2.5 py-1 text-[0.62rem] font-medium tracking-[0.14em] text-[#1c1c16] uppercase md:text-[0.68rem]">
               {editMode && spot.floor !== undefined
@@ -242,23 +256,55 @@ function StackedIsometricVisual({
   images,
   unit,
   editMode = false,
-  renderImages = true,
-  renderHotspots = true,
-  activeFloor = null,
-  onActiveFloorChange,
-  showFloorLabel = true,
+  revealed = false,
 }: {
   images: readonly StackImage[];
   unit: IsoUnit;
   editMode?: boolean;
-  renderImages?: boolean;
-  renderHotspots?: boolean;
-  activeFloor?: number | null;
-  onActiveFloorChange?: (floor: number | null) => void;
-  showFloorLabel?: boolean;
+  revealed?: boolean;
 }) {
   const stackRef = useRef<HTMLDivElement>(null);
+  const [hoverFloor, setHoverFloor] = useState<number | null>(null);
+  const [pinnedFloor, setPinnedFloor] = useState<number | null>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
+
+  const activeFloor = pinnedFloor ?? hoverFloor;
+
+  useEffect(() => {
+    setHoverFloor(null);
+    setPinnedFloor(null);
+  }, [unit.id]);
+
+  useEffect(() => {
+    if (!revealed) {
+      setHoverFloor(null);
+      setPinnedFloor(null);
+    }
+  }, [revealed]);
+
+  useEffect(() => {
+    if (pinnedFloor === null) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setPinnedFloor(null);
+      setHoverFloor(null);
+    };
+
+    const onPointerDown = (event: PointerEvent) => {
+      const stack = stackRef.current;
+      if (!stack || stack.contains(event.target as Node)) return;
+      setPinnedFloor(null);
+      setHoverFloor(null);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [pinnedFloor]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -268,50 +314,77 @@ function StackedIsometricVisual({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  const pickFloor = useCallback(
+  const resolveFloor = useCallback((clientY: number) => {
+    const el = stackRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    if (rect.height <= 0) return null;
+    const yRatio = (clientY - rect.top) / rect.height;
+    if (yRatio < 0 || yRatio > 1) return null;
+    return floorIndexFromPointer(yRatio, townhouseStackHoverBands);
+  }, []);
+
+  const pickFloorHover = useCallback(
     (clientY: number) => {
-      if (!onActiveFloorChange) return;
-      const el = stackRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      if (rect.height <= 0) return;
-      const yRatio = (clientY - rect.top) / rect.height;
-      if (yRatio < 0 || yRatio > 1) {
-        onActiveFloorChange(null);
+      if (pinnedFloor !== null) return;
+      setHoverFloor(resolveFloor(clientY));
+    },
+    [pinnedFloor, resolveFloor],
+  );
+
+  const handleStackPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if ((event.target as HTMLElement).closest("[data-iso-hotspot]")) return;
+
+      const floor = resolveFloor(event.clientY);
+      if (floor === null) return;
+
+      if (pinnedFloor === floor) {
+        setPinnedFloor(null);
         return;
       }
-      onActiveFloorChange(floorIndexFromPointer(yRatio));
+
+      setPinnedFloor(floor);
+      setHoverFloor(floor);
     },
-    [onActiveFloorChange],
+    [pinnedFloor, resolveFloor],
   );
 
   const activeLabel =
-    showFloorLabel && activeFloor !== null ? images[activeFloor]?.label : null;
-
-  const interactive = renderImages && Boolean(onActiveFloorChange);
+    activeFloor !== null ? images[activeFloor]?.label : null;
 
   return (
     <div
       ref={stackRef}
-      className={[
-        "absolute inset-0",
-        interactive ? "cursor-default" : "pointer-events-none",
-      ].join(" ")}
-      onMouseMove={interactive ? (event) => pickFloor(event.clientY) : undefined}
-      onMouseLeave={interactive ? () => onActiveFloorChange?.(null) : undefined}
-      onPointerDown={
-        interactive
-          ? (event) => {
-              if (event.pointerType !== "mouse") pickFloor(event.clientY);
-            }
-          : undefined
-      }
+      className="absolute inset-0 cursor-default"
+      onMouseMove={(event) => pickFloorHover(event.clientY)}
+      onMouseLeave={() => {
+        if (pinnedFloor === null) setHoverFloor(null);
+      }}
+      onPointerDown={handleStackPointerDown}
     >
+      {editMode
+        ? Object.entries(townhouseStackHoverBands).map(([index, band]) => (
+            <div
+              key={`band-${index}`}
+              className="pointer-events-none absolute inset-x-[8%] border border-dashed border-[#e85d04]/70 bg-[#e85d04]/10"
+              style={{
+                top: `${band.top * 100}%`,
+                height: `${(band.bottom - band.top) * 100}%`,
+              }}
+              aria-hidden
+            >
+              <span className="absolute top-1 left-2 text-[0.58rem] font-medium tracking-wide text-[#e85d04] uppercase">
+                f{index}
+              </span>
+            </div>
+          ))
+        : null}
       {images.map((img, layerIndex) => {
         const isActive = activeFloor === layerIndex;
-        const isDimmed = !editMode && activeFloor !== null && !isActive;
+        const isDimmed = activeFloor !== null && !isActive;
         const lift =
-          isActive && !reduceMotion && !editMode && renderImages
+          isActive && !reduceMotion
             ? " translateY(-3.5%) scale-[1.035]"
             : "";
 
@@ -319,11 +392,9 @@ function StackedIsometricVisual({
           <div
             key={img.src}
             className={[
-              "absolute inset-0 origin-bottom transition-[transform,opacity,filter] duration-300 ease-out",
-              renderImages && isDimmed
-                ? "opacity-[0.62] brightness-[0.94] saturate-[0.88]"
-                : "",
-              renderImages && isActive
+              "pointer-events-none absolute inset-0 origin-bottom transition-[transform,opacity,filter] duration-300 ease-out",
+              isDimmed ? "opacity-[0.62] brightness-[0.94] saturate-[0.88]" : "",
+              isActive
                 ? "brightness-[1.05] drop-shadow-[0_14px_28px_rgba(0,0,0,0.2)]"
                 : "",
             ].join(" ")}
@@ -332,38 +403,54 @@ function StackedIsometricVisual({
               transform: `translate(${img.stack.x}%, ${img.stack.y}%)${lift}`,
             }}
           >
-            {renderImages ? (
-              <div className="pointer-events-none absolute inset-0">
-                <Image
-                  src={img.src}
-                  alt={img.alt}
-                  fill
-                  sizes="(max-width: 768px) 88vw, 52vw"
-                  className="object-contain object-bottom"
-                  onLoad={scheduleScrollRefresh}
-                />
-              </div>
-            ) : null}
-            {renderHotspots ? (
-              <IsometricHotspots
-                unit={unit}
-                floor={layerIndex}
-                activeFloor={activeFloor}
-                editMode={editMode}
+            <div className="pointer-events-none absolute inset-0">
+              <Image
+                src={img.src}
+                alt={img.alt}
+                fill
+                sizes="(max-width: 768px) 88vw, 52vw"
+                className="object-contain object-bottom"
+                onLoad={scheduleScrollRefresh}
               />
-            ) : null}
+            </div>
+            <IsometricHotspots
+              unit={unit}
+              floor={layerIndex}
+              activeFloor={activeFloor}
+              editMode={editMode}
+              revealed={
+                revealed &&
+                (editMode
+                  ? activeFloor === null || activeFloor === layerIndex
+                  : activeFloor === layerIndex)
+              }
+            />
           </div>
         );
       })}
 
       {activeLabel ? (
         <div
-          className={[
-            "pointer-events-none absolute top-[8%] left-1/2 -translate-x-1/2 rounded-md bg-[#f3f0e8]/94 px-3 py-1.5 text-[0.62rem] font-medium tracking-[0.16em] text-[#1c1c16] uppercase transition-[opacity,transform] duration-200 md:text-[0.68rem]",
-            "translate-y-0 opacity-100",
-          ].join(" ")}
+          className="pointer-events-none absolute top-[8%] left-1/2 -translate-x-1/2 translate-y-0 rounded-md bg-[#f3f0e8]/94 px-3 py-1.5 text-center text-[0.62rem] font-medium tracking-[0.16em] text-[#1c1c16] uppercase opacity-100 transition-[opacity,transform] duration-200 md:text-[0.68rem]"
+          aria-hidden={!activeLabel}
         >
-          {activeLabel}
+          <span>{activeLabel}</span>
+          {pinnedFloor !== null ? (
+            <span className="mt-0.5 block text-[0.52rem] font-normal tracking-[0.1em] text-[#1c1c16]/65 normal-case">
+              Fijado · Clic fuera o Esc para soltar
+            </span>
+          ) : (
+            <span className="mt-0.5 block text-[0.52rem] font-normal tracking-[0.1em] text-[#1c1c16]/65 normal-case">
+              Clic para fijar
+            </span>
+          )}
+        </div>
+      ) : revealed ? (
+        <div
+          className="pointer-events-none absolute top-[8%] left-1/2 -translate-x-1/2 rounded-md bg-[#f3f0e8]/80 px-3 py-1.5 text-[0.52rem] tracking-[0.1em] text-[#1c1c16]/70 normal-case md:text-[0.58rem]"
+          aria-hidden
+        >
+          Pasa el cursor o toca un piso
         </div>
       ) : null}
     </div>
@@ -372,36 +459,16 @@ function StackedIsometricVisual({
 
 function IsometricVisual({
   unit,
-  hotspotsRef,
   editMode = false,
+  hotspotsRevealed = false,
 }: {
   unit: IsoUnit;
-  hotspotsRef?: RefObject<HTMLDivElement | null>;
   editMode?: boolean;
+  hotspotsRevealed?: boolean;
 }) {
   const isStacked = Boolean(unit.images?.length);
-  const [activeFloor, setActiveFloor] = useState<number | null>(null);
-
-  useEffect(() => {
-    setActiveFloor(null);
-  }, [unit.id]);
-
   const sharedWidth =
     "mx-auto w-full max-w-[min(560px,78vw)] md:max-w-none md:flex-1";
-
-  const hotspotsLayer =
-    unit.hotspots?.length && hotspotsRef ? (
-      <div
-        ref={hotspotsRef}
-        data-iso-hotspots=""
-        className="pointer-events-none absolute inset-0 z-10"
-        aria-hidden
-      >
-        <IsometricHotspots unit={unit} editMode={editMode} />
-      </div>
-    ) : unit.hotspots?.length ? (
-      <IsometricHotspots unit={unit} editMode={editMode} />
-    ) : null;
 
   if (!isStacked && unit.image) {
     return (
@@ -415,46 +482,29 @@ function IsometricVisual({
           priority
           onLoad={scheduleScrollRefresh}
         />
-        {hotspotsLayer}
+        <IsometricHotspots
+          unit={unit}
+          editMode={editMode}
+          revealed={hotspotsRevealed}
+        />
       </div>
     );
   }
 
   if (!unit.images?.length) return null;
 
-  const stackBase = (
-    <div className="absolute inset-x-0 bottom-0 aspect-[5760/3652]">
-      <StackedIsometricVisual
-        images={unit.images}
-        unit={unit}
-        editMode={editMode}
-        renderHotspots={false}
-        activeFloor={activeFloor}
-        onActiveFloorChange={setActiveFloor}
-      />
-      {unit.hotspots?.length && hotspotsRef ? (
-        <div
-          ref={hotspotsRef}
-          data-iso-hotspots=""
-          className="pointer-events-none absolute inset-0 z-10"
-          aria-hidden
-        >
+  return (
+    <div className={`relative ${sharedWidth}`}>
+      <div className="relative w-full aspect-[5760/5150]">
+        <div className="absolute inset-x-0 bottom-0 aspect-[5760/3652]">
           <StackedIsometricVisual
             images={unit.images}
             unit={unit}
             editMode={editMode}
-            renderImages={false}
-            activeFloor={activeFloor}
-            showFloorLabel={false}
+            revealed={hotspotsRevealed}
           />
         </div>
-      ) : null}
-    </div>
-  );
-
-  return (
-    <div className={`relative ${sharedWidth}`}>
-      <div className="relative w-full aspect-[5760/5150]">{stackBase}</div>
+      </div>
     </div>
   );
 }
@@ -571,9 +621,9 @@ export function UnitExploreSection() {
   const tourUiRef = useRef<HTMLDivElement>(null);
   const sheetUiRef = useRef<HTMLDivElement>(null);
   const compareRef = useRef<HTMLAnchorElement>(null);
-  const isoHotspotsRef = useRef<HTMLDivElement>(null);
   const isoHotspotsStartRef = useRef(0);
   const tourStartProgressRef = useRef(0.3);
+  const hotspotsRevealedRef = useRef(false);
 
   const initialTourUnit =
     tourUnits.find((u) => u.spaces.length > 0) ?? tourUnits[0];
@@ -589,40 +639,41 @@ export function UnitExploreSection() {
   );
   const [mountPano, setMountPano] = useState(false);
   const [hotspotEditMode, setHotspotEditMode] = useState(false);
+  const [hotspotsRevealed, setHotspotsRevealed] = useState(false);
 
   useEffect(() => {
     setHotspotEditMode(isHotspotEditMode());
   }, []);
 
   const syncIsoHotspots = useCallback((progress: number) => {
-    const el = isoHotspotsRef.current;
-    if (!el) return;
-
     const end = tourStartProgressRef.current;
-    let opacity = 0;
+    let revealed = false;
 
     if (isHotspotEditMode()) {
-      opacity = progress < end ? 1 : 0;
+      revealed = progress < end;
     } else {
       const start = isoHotspotsStartRef.current;
       const revealEnd = start + 0.04;
-      opacity =
-        progress < start
-          ? 0
-          : progress >= end
-            ? 0
-            : progress < revealEnd
-              ? gsap.utils.mapRange(start, revealEnd, 0, 1, progress)
-              : 1;
+      revealed =
+        progress >= revealEnd && progress < end;
     }
 
-    gsap.set(el, { autoAlpha: opacity });
-    el.style.pointerEvents = opacity > 0.35 ? "auto" : "none";
-    el.setAttribute("aria-hidden", opacity > 0.35 ? "false" : "true");
+    if (hotspotsRevealedRef.current !== revealed) {
+      hotspotsRevealedRef.current = revealed;
+      setHotspotsRevealed(revealed);
+    }
   }, []);
 
   const syncIsoHotspotsRef = useRef(syncIsoHotspots);
   syncIsoHotspotsRef.current = syncIsoHotspots;
+
+  useEffect(() => {
+    hotspotsRevealedRef.current = false;
+    setHotspotsRevealed(false);
+    syncIsoHotspotsRef.current(
+      ScrollTrigger.getById(UNIT_SECTION_ID)?.progress ?? 0,
+    );
+  }, [unitId]);
 
   const applyUnit = useCallback(
     (unitKey: string | null, preferredSpaceId?: string | null) => {
@@ -764,7 +815,6 @@ export function UnitExploreSection() {
       gsap.set(tourUi, { autoAlpha: 1 });
       gsap.set(sheetUi, { autoAlpha: 0 });
       gsap.set(compare, { autoAlpha: 0 });
-      gsap.set("[data-iso-hotspots]", { autoAlpha: 0 });
       setPhase("iso");
       setSheetMode(false);
 
@@ -915,7 +965,6 @@ export function UnitExploreSection() {
   const isoHotspotsKey = hotspotsFingerprint(isoUnit.hotspots);
 
   useEffect(() => {
-    if (!isHotspotEditMode()) return;
     syncIsoHotspotsRef.current(
       ScrollTrigger.getById(UNIT_SECTION_ID)?.progress ?? 0,
     );
@@ -1025,8 +1074,8 @@ export function UnitExploreSection() {
               >
                 <IsometricVisual
                   unit={isoUnit}
-                  hotspotsRef={isoHotspotsRef}
                   editMode={hotspotEditMode}
+                  hotspotsRevealed={hotspotsRevealed}
                 />
               </div>
             </div>

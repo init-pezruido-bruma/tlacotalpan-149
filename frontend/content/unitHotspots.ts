@@ -11,6 +11,19 @@ export type UnitHotspot = {
   floor?: number;
 };
 
+/**
+ * Zonas de hover del stack townhouse (fracción vertical del contenedor, 0 = arriba).
+ * Ajustar si el resaltado no coincide con cada piso del isométrico.
+ */
+export const townhouseStackHoverBands: Record<
+  number,
+  { top: number; bottom: number }
+> = {
+  0: { top: 0.44, bottom: 1 },
+  1: { top: 0.22, bottom: 0.46 },
+  2: { top: 0, bottom: 0.24 },
+};
+
 export const unitHotspots: Record<string, UnitHotspot[]> = {
   "depto-101": [
     { label: "Recámara", spaceId: "recamara-01", x: 34, y: 32 },
