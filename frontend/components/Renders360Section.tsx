@@ -10,6 +10,7 @@ import { scheduleScrollRefresh } from "../lib/scrollRefresh";
 import { panoramas } from "../content";
 import {
   exitTourToCompare,
+  getUnitFromUrl,
   TOUR_EVENT,
   type TourEventDetail,
 } from "../lib/goToTour";
@@ -134,7 +135,7 @@ export function Renders360Section() {
     };
 
     const applyUnitFromUrl = () => {
-      applyUnit(new URLSearchParams(window.location.search).get("unit"));
+      applyUnit(getUnitFromUrl());
     };
 
     const onTour = (event: Event) => {

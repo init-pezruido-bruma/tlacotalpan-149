@@ -19,6 +19,7 @@ import { panoramas, unitIsometrics } from "../content";
 import { unitHotspots, townhouseStackHoverBands } from "../content/unitHotspots";
 import {
   exitTourToCompare,
+  getUnitFromUrl,
   goToTour,
   ISOMETRIC_EVENT,
   setIsoScrollProgress,
@@ -709,7 +710,7 @@ export function UnitExploreSection() {
 
   useEffect(() => {
     const applyUnitFromUrl = () => {
-      applyUnit(new URLSearchParams(window.location.search).get("unit"));
+      applyUnit(getUnitFromUrl());
     };
 
     const onTour = (event: Event) => {

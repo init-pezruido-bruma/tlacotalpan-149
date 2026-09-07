@@ -4,6 +4,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { applyBootDeepLink } from "../lib/goToTour";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -38,21 +39,21 @@ function whenPageReady(): Promise<void> {
 }
 
 function lockScroll() {
-  const y = window.scrollY || 0;
   const { body } = document;
   document.documentElement.classList.add("page-booting");
   document.documentElement.setAttribute("aria-busy", "true");
-  body.dataset.scrollLockY = String(y);
+  // Siempre anclar en 0: el scroll nativo al hash es incorrecto sin pin-spacers
+  body.dataset.scrollLockY = "0";
   body.style.position = "fixed";
-  body.style.top = `-${y}px`;
+  body.style.top = "0";
   body.style.left = "0";
   body.style.right = "0";
   body.style.width = "100%";
+  window.scrollTo(0, 0);
 }
 
 function unlockScroll() {
   const { body } = document;
-  const y = Number(body.dataset.scrollLockY || 0);
   document.documentElement.classList.remove("page-booting");
   document.documentElement.removeAttribute("aria-busy");
   body.style.position = "";
@@ -61,7 +62,21 @@ function unlockScroll() {
   body.style.right = "";
   body.style.width = "";
   delete body.dataset.scrollLockY;
-  window.scrollTo(0, y);
+  window.scrollTo(0, 0);
+}
+
+function revealHeroInstant() {
+  gsap.set(
+    [
+      ".hero-brand",
+      ".hero-headline",
+      ".hero-support",
+      ".hero-cta",
+      ".hero-plan",
+      ".reveal",
+    ],
+    { opacity: 1, y: 0, clearProps: "transform" },
+  );
 }
 
 export function PageMotion({ children }: { children: React.ReactNode }) {
@@ -73,9 +88,17 @@ export function PageMotion({ children }: { children: React.ReactNode }) {
         autoRefreshEvents: "visibilitychange,resize",
       });
 
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+
       const reduce = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
+      const hasDeepLink = Boolean(
+        window.location.hash ||
+          new URLSearchParams(window.location.search).get("unit"),
+      );
 
       lockScroll();
 
@@ -114,18 +137,18 @@ export function PageMotion({ children }: { children: React.ReactNode }) {
           ScrollTrigger.normalizeScroll(true);
         }
 
-        if (reduce) {
-          gsap.set(
-            [
-              ".hero-brand",
-              ".hero-headline",
-              ".hero-support",
-              ".hero-cta",
-              ".hero-plan",
-              ".reveal",
-            ],
-            { opacity: 1, y: 0, clearProps: "transform" },
-          );
+        const landedOnDeepLink = hasDeepLink && applyBootDeepLink();
+
+        // Por si el refresh de pines movió starts/ends tras el primer salto
+        if (landedOnDeepLink) {
+          requestAnimationFrame(() => {
+            ScrollTrigger.refresh();
+            applyBootDeepLink();
+          });
+        }
+
+        if (reduce || landedOnDeepLink) {
+          revealHeroInstant();
           return;
         }
 

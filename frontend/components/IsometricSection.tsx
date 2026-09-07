@@ -8,6 +8,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { scheduleScrollRefresh } from "../lib/scrollRefresh";
 import { unitIsometrics } from "../content";
 import {
+  getUnitFromUrl,
   goToTour,
   ISOMETRIC_EVENT,
   type IsometricEventDetail,
@@ -150,7 +151,7 @@ export function IsometricSection() {
     };
 
     const applyUnitFromUrl = () => {
-      applyUnit(new URLSearchParams(window.location.search).get("unit"));
+      applyUnit(getUnitFromUrl());
     };
 
     const onIsometric = (event: Event) => {
