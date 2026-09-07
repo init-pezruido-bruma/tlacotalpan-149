@@ -211,83 +211,108 @@ export function NeighborhoodMap({
     let ro: ResizeObserver | null = null;
     let onPlaceResize: (() => void) | null = null;
     let syncPositions: (() => void) | null = null;
+    let io: IntersectionObserver | null = null;
+    let started = false;
 
     const [lat, lng] = center;
 
-    void (async () => {
-      try {
-        const maplibregl = await loadMapLibre();
-        if (cancelled || !mapElRef.current) return;
+    const startMap = () => {
+      if (cancelled || started) return;
+      started = true;
 
-        while (
-          !cancelled &&
-          mapElRef.current &&
-          (mapElRef.current.clientWidth < 8 ||
-            mapElRef.current.clientHeight < 8)
-        ) {
-          await new Promise((r) => requestAnimationFrame(r));
+      void (async () => {
+        try {
+          const maplibregl = await loadMapLibre();
+          if (cancelled || !mapElRef.current) return;
+
+          while (
+            !cancelled &&
+            mapElRef.current &&
+            (mapElRef.current.clientWidth < 8 ||
+              mapElRef.current.clientHeight < 8)
+          ) {
+            await new Promise((r) => requestAnimationFrame(r));
+          }
+          if (cancelled || !mapElRef.current) return;
+
+          const map = new maplibregl.Map({
+            container: mapElRef.current,
+            style: "https://tiles.openfreemap.org/styles/positron",
+            center: [lng, lat],
+            zoom,
+            maxZoom: 16,
+            interactive: false,
+            attributionControl: { compact: true },
+            fadeDuration: 0,
+          });
+
+          mapRef.current = map;
+
+          syncPositions = () => {
+            if (cancelled || !mapRef.current) return;
+            setPositions(projectPins(mapRef.current, pinsDataRef.current));
+          };
+
+          const apply = () => {
+            if (cancelled) return;
+            stylizePlaceMap(map);
+            map.resize();
+            map.triggerRepaint();
+            syncPositions?.();
+          };
+
+          map.on("load", apply);
+          map.on("resize", () => syncPositions?.());
+          map.on("error", (e) => {
+            console.error("[NeighborhoodMap]", e);
+          });
+
+          requestAnimationFrame(() => {
+            map.resize();
+            syncPositions?.();
+          });
+          window.setTimeout(() => {
+            map.resize();
+            syncPositions?.();
+          }, 600);
+
+          ro = new ResizeObserver(() => {
+            map.resize();
+            syncPositions?.();
+          });
+          ro.observe(mapElRef.current);
+
+          onPlaceResize = () => {
+            map.resize();
+            syncPositions?.();
+          };
+          window.addEventListener("place-map-resize", onPlaceResize);
+        } catch (err) {
+          console.error("[NeighborhoodMap] init failed", err);
         }
-        if (cancelled || !mapElRef.current) return;
+      })();
+    };
 
-        const map = new maplibregl.Map({
-          container: mapElRef.current,
-          style: "https://tiles.openfreemap.org/styles/positron",
-          center: [lng, lat],
-          zoom,
-          maxZoom: 16,
-          interactive: false,
-          attributionControl: { compact: true },
-          fadeDuration: 0,
-        });
-
-        mapRef.current = map;
-
-        syncPositions = () => {
-          if (cancelled || !mapRef.current) return;
-          setPositions(projectPins(mapRef.current, pinsDataRef.current));
-        };
-
-        const apply = () => {
-          if (cancelled) return;
-          stylizePlaceMap(map);
-          map.resize();
-          map.triggerRepaint();
-          syncPositions?.();
-        };
-
-        map.on("load", apply);
-        map.on("resize", () => syncPositions?.());
-        map.on("error", (e) => {
-          console.error("[NeighborhoodMap]", e);
-        });
-
-        requestAnimationFrame(() => {
-          map.resize();
-          syncPositions?.();
-        });
-        window.setTimeout(() => {
-          map.resize();
-          syncPositions?.();
-        }, 600);
-
-        ro = new ResizeObserver(() => {
-          map.resize();
-          syncPositions?.();
-        });
-        ro.observe(mapElRef.current);
-
-        onPlaceResize = () => {
-          map.resize();
-          syncPositions?.();
-        };
-        window.addEventListener("place-map-resize", onPlaceResize);
-      } catch (err) {
-        console.error("[NeighborhoodMap] init failed", err);
-      }
-    })();
+    // No cargar MapLibre en el primer paint: espera a que la sección se acerque
+    if (typeof IntersectionObserver === "undefined") {
+      startMap();
+    } else {
+      io = new IntersectionObserver(
+        (entries) => {
+          if (entries.some((entry) => entry.isIntersecting)) {
+            io?.disconnect();
+            io = null;
+            startMap();
+          }
+        },
+        { rootMargin: "40% 0px", threshold: 0 },
+      );
+      io.observe(el);
+    }
 
     return () => {
       cancelled = true;
+      io?.disconnect();
       ro?.disconnect();
       if (onPlaceResize) {
         window.removeEventListener("place-map-resize", onPlaceResize);

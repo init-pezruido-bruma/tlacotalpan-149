@@ -63,6 +63,17 @@ html {
   overflow-x: hidden;
 }
 
+/* Bloqueo de scroll hasta que PageMotion marque la página lista */
+html.page-booting,
+html.page-booting body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+html.page-booting body {
+  touch-action: none;
+}
+
 @media (pointer: coarse) {
   html {
     scroll-behavior: auto;
@@ -133,6 +144,35 @@ summary {
     var(--hero-green-soft) 72%,
     var(--hero-green-light) 100%
   );
+}
+
+/*
+  FOUC guard: el HTML SSR pinta antes de hidratar GSAP.
+  Sin esto, gsap.from() oculta elementos ya visibles → flash + stutter.
+*/
+.hero-brand,
+.hero-headline,
+.hero-support,
+.hero-cta,
+.hero-plan {
+  opacity: 0;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 36px, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-brand,
+  .hero-headline,
+  .hero-support,
+  .hero-cta,
+  .hero-plan,
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .footer-surface {

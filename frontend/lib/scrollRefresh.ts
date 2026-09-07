@@ -42,11 +42,16 @@ function restoreScroll(snapshot: RefreshSnapshot) {
 /**
  * Refresca ScrollTrigger sin perder la posición del scroll.
  * Solo restaura el pin activo; si no hay pin, restaura scrollY.
+ * Debounce más largo al boot para no encadenar refreshes (stutter).
  */
 export function scheduleScrollRefresh() {
   if (typeof window === "undefined") return;
 
   if (timer) clearTimeout(timer);
+  const bootMs =
+    typeof performance !== "undefined" && performance.now() < 2500
+      ? 700
+      : 400;
   timer = setTimeout(() => {
     timer = null;
 
@@ -54,5 +59,5 @@ export function scheduleScrollRefresh() {
 
     ScrollTrigger.refresh();
     restoreScroll(snapshot);
-  }, 400);
+  }, bootMs);
 }

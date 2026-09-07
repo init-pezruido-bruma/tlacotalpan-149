@@ -169,6 +169,7 @@ export function FacadeSection() {
         <div
           ref={hotspotsRef}
           className="absolute inset-0 z-10"
+          style={{ opacity: 0, visibility: "hidden" }}
         >
           {facade.hotspots.map((spot) => (
             <button

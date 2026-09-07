@@ -144,6 +144,7 @@ export function PlaceSection() {
         <div
           ref={panelRef}
           className="absolute inset-x-[4%] top-[40%] z-10 flex max-h-[56svh] flex-col md:inset-y-[6%] md:right-[3%] md:left-auto md:max-h-none md:w-[46%]"
+          style={{ opacity: 0, visibility: "hidden" }}
         >
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.25rem] border border-place-ink/35 px-5 py-6 md:rounded-[1.75rem] md:px-8 md:py-9">
             <h2

@@ -1088,6 +1088,7 @@ export function UnitExploreSection() {
           <div
             ref={isoVisualRef}
             className="flex min-h-0 shrink-0 items-center justify-center max-md:h-[min(44svh,400px)] md:max-h-[34svh] md:flex-1 md:justify-end md:pr-4"
+            style={{ opacity: 0, visibility: "hidden" }}
           >
             <div className="relative h-full w-full">
               {leavingUnit && (
@@ -1116,6 +1117,7 @@ export function UnitExploreSection() {
           <div
             ref={isoPanelRef}
             className="relative w-full shrink-0 max-md:min-h-0 max-md:overflow-hidden md:mt-0 md:w-[min(22rem,34vw)] lg:w-[min(24rem,30vw)]"
+            style={{ opacity: 0, visibility: "hidden" }}
           >
             {leavingUnit && (
               <div
@@ -1141,6 +1143,7 @@ export function UnitExploreSection() {
         ref={tourLayerRef}
         className={`absolute inset-0 z-[2] ${phase === "iso" ? "pointer-events-none" : ""}`}
         aria-hidden={phase === "iso"}
+        style={{ opacity: 0, visibility: "hidden" }}
       >
         <div
           ref={panoWrapRef}
@@ -1160,6 +1163,7 @@ export function UnitExploreSection() {
         <div
           ref={frostRef}
           className="pointer-events-none absolute inset-0 bg-[rgba(8,10,6,0.48)] backdrop-blur-[2px]"
+          style={{ opacity: 0, visibility: "hidden" }}
           aria-hidden
         />
         <div
@@ -1276,6 +1280,7 @@ export function UnitExploreSection() {
           ref={sheetUiRef}
           className={`absolute inset-0 z-20 max-md:pt-14 ${sheetMode ? "" : "pointer-events-none"}`}
           aria-hidden={!sheetMode}
+          style={{ opacity: 0, visibility: "hidden" }}
         >
           <div className="flex h-full flex-col overflow-y-auto px-5 pt-4 pb-10 max-md:pb-[max(1.5rem,env(safe-area-inset-bottom))] md:justify-center md:overflow-hidden md:px-10 md:pt-6 md:pb-16 lg:px-14">
             <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch gap-8 md:h-full md:flex-row md:items-center md:justify-center md:gap-8 lg:gap-12">
@@ -1355,6 +1360,7 @@ export function UnitExploreSection() {
           href={panoramas.compare.href}
           className="absolute bottom-7 left-1/2 z-30 hidden min-h-11 -translate-x-1/2 flex-col items-center justify-center gap-1 rounded-full px-3 text-white/75 transition-opacity hover:text-white md:flex"
           tabIndex={sheetMode ? 0 : -1}
+          style={{ opacity: 0, visibility: "hidden" }}
         >
           <span className="text-[0.65rem] tracking-[0.28em] uppercase md:text-[0.7rem]">
             {panoramas.compare.label}

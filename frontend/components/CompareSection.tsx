@@ -64,7 +64,10 @@ export function CompareSection() {
       className="compare-surface relative isolate overflow-hidden"
     >
       <div className="flex min-h-[100svh] flex-col justify-center overflow-y-auto px-[max(1.25rem,calc((100%-var(--content))/2))] py-8 md:h-[100svh] md:overflow-hidden md:py-8">
-        <h2 className="compare-title text-center text-[clamp(1.15rem,2.6vw,1.75rem)] font-medium tracking-[0.16em] text-compare-ink uppercase">
+        <h2
+          className="compare-title text-center text-[clamp(1.15rem,2.6vw,1.75rem)] font-medium tracking-[0.16em] text-compare-ink uppercase"
+          style={{ opacity: 0, visibility: "hidden" }}
+        >
           {compare.title}
         </h2>
 
@@ -76,6 +79,7 @@ export function CompareSection() {
                 "compare-col flex min-h-0 flex-col items-center px-4 text-center sm:px-5 lg:px-4",
                 i > 0 ? "max-md:border-t max-md:border-compare-ink/20 max-md:pt-10 sm:border-l sm:border-t-0 sm:border-compare-ink/20 sm:pt-0" : "",
               ].join(" ")}
+              style={{ opacity: 0, visibility: "hidden" }}
             >
               <div className="relative mx-auto aspect-[5760/3652] w-full max-w-[min(200px,52vw)] shrink-0 max-md:max-w-[min(200px,52vw)] sm:max-w-[min(200px,24vw)] lg:max-w-[220px]">
                 {"images" in item ? (
