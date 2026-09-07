@@ -1,15 +1,16 @@
 import gsap from "gsap";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { lastSeekableTime } from "./scrubVideo";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
 export const TOUR_EVENT = "tl149:goto-tour";
 export const ISOMETRIC_EVENT = "tl149:goto-isometric";
 
 export const UNIT_SECTION_ID = "recorridos";
 
-/** Ids compartibles en URL: `/#depto-101`, `/?unit=townhouse-201` */
+/** Ids compartibles en URL: `/#depto-101` (también acepta `?unit=` legacy). */
 export const UNIT_IDS = [
   "depto-101",
   "depto-102",
@@ -31,8 +32,10 @@ export type IsometricEventDetail = {
 let tourScrollProgress = 0.3;
 let isoScrollProgress = 0.18;
 
-/** Scroll animado fachada → isométrico (ni instantáneo ni 3s+). */
-const ISO_SCROLL_DURATION = 1.1;
+/** Velocidad base del scroll fachada → iso (px/s aprox.); se clampea a un rango cómodo. */
+const ISO_SCROLL_PX_PER_SEC = 2100;
+const ISO_SCROLL_DURATION_MIN = 1.6;
+const ISO_SCROLL_DURATION_MAX = 2.8;
 
 export function setTourScrollProgress(progress: number) {
   tourScrollProgress = progress;
@@ -46,14 +49,15 @@ export function isUnitId(id: string): id is UnitId {
   return (UNIT_IDS as readonly string[]).includes(id);
 }
 
-/** Lee unidad desde `#depto-101` o `?unit=depto-101`. */
+/** Lee unidad desde `#depto-101` (prioridad) o `?unit=` legacy. */
 export function getUnitFromUrl(href = window.location.href): UnitId | null {
   const url = new URL(href, window.location.origin);
-  const fromQuery = url.searchParams.get("unit");
-  if (fromQuery && isUnitId(fromQuery)) return fromQuery;
 
   const fromHash = url.hash.replace(/^#/, "").trim();
   if (fromHash && isUnitId(fromHash)) return fromHash;
+
+  const fromQuery = url.searchParams.get("unit");
+  if (fromQuery && isUnitId(fromQuery)) return fromQuery;
 
   return null;
 }
@@ -121,14 +125,9 @@ function jumpToSection(sectionId: string, progress: number) {
 
 /**
  * Scroll animado manteniendo pines activos.
- * Desactivar el pin colapsa spacers → el target queda mal, te pasas
- * (360 / secciones siguientes) y el snap final te regresa al iso.
+ * Arranca de inmediato (ease-out) y dura según la distancia → fluido, sin precipitarse.
  */
-function animateToSection(
-  sectionId: string,
-  progress: number,
-  duration: number,
-) {
+function animateToSection(sectionId: string, progress: number) {
   const reduce = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
@@ -142,14 +141,21 @@ function animateToSection(
   gsap.killTweensOf(window);
   gsap.killTweensOf(scroller);
 
+  const start = scroller.scrollTop;
   const end = getSectionScrollY(sectionId, progress);
+  const distance = Math.abs(end - start);
+  const duration = gsap.utils.clamp(
+    ISO_SCROLL_DURATION_MIN,
+    ISO_SCROLL_DURATION_MAX,
+    distance / ISO_SCROLL_PX_PER_SEC,
+  );
 
-  gsap.to(scroller, {
-    scrollTop: end,
+  gsap.to(window, {
+    scrollTo: { y: end, autoKill: false },
     duration,
-    ease: "power2.inOut",
+    // Sin ease-in: el movimiento empieza en el click; frena suave al llegar
+    ease: "power2.out",
     overwrite: true,
-    onUpdate: () => ScrollTrigger.update(),
     onComplete: () => {
       scrollToSectionProgress(sectionId, progress);
       ScrollTrigger.update();
@@ -157,13 +163,15 @@ function animateToSection(
   });
 }
 
-function setUnitParam(unitId: string) {
+/** Solo hash: `/#townhouse-201` (limpia `?unit=` si venía de un link viejo). */
+function setUnitRef(unitId: string) {
   const url = new URL(window.location.href);
-  url.searchParams.set("unit", unitId);
+  url.searchParams.delete("unit");
+  const search = url.searchParams.toString();
   window.history.pushState(
     {},
     "",
-    `${url.pathname}${url.search}#${unitId}`,
+    `${url.pathname}${search ? `?${search}` : ""}#${unitId}`,
   );
 }
 
@@ -171,7 +179,7 @@ function setUnitParam(unitId: string) {
 export function jumpToUnit(unitId: string) {
   if (!isUnitId(unitId)) return false;
 
-  setUnitParam(unitId);
+  setUnitRef(unitId);
   window.dispatchEvent(
     new CustomEvent<IsometricEventDetail>(ISOMETRIC_EVENT, {
       detail: { unitId },
@@ -183,22 +191,20 @@ export function jumpToUnit(unitId: string) {
 
 export function goToIsometric(unitId: string) {
   lockFacadeVideo();
-  setUnitParam(unitId);
+  // Scroll primero: respuesta inmediata al click (URL/evento después)
+  animateToSection(UNIT_SECTION_ID, isoScrollProgress);
+  setUnitRef(unitId);
   window.dispatchEvent(
     new CustomEvent<IsometricEventDetail>(ISOMETRIC_EVENT, {
       detail: { unitId },
     }),
   );
-
-  requestAnimationFrame(() => {
-    animateToSection(UNIT_SECTION_ID, isoScrollProgress, ISO_SCROLL_DURATION);
-  });
 }
 
 export function goToTour(unitId: string, spaceId?: string) {
   lockFacadeVideo();
   const y = jumpToSection(UNIT_SECTION_ID, tourScrollProgress);
-  setUnitParam(unitId);
+  setUnitRef(unitId);
   window.dispatchEvent(
     new CustomEvent<TourEventDetail>(TOUR_EVENT, {
       detail: { unitId, spaceId },
@@ -236,7 +242,7 @@ export function jumpToHash(hash = window.location.hash) {
   return true;
 }
 
-/** Deep link al boot: unidad (`#` / `?unit=`) o ancla de sección. */
+/** Deep link al boot: unidad (`#` / `?unit=` legacy) o ancla de sección. */
 export function applyBootDeepLink() {
   const unit = getUnitFromUrl();
   if (unit) return jumpToUnit(unit);

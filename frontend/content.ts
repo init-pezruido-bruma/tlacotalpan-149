@@ -93,8 +93,8 @@ export const place = {
           id: "espana",
           label: "Parque España",
           walk: "14 Min",
-          lat: 19.41378,
-          lng: -99.172043,
+          lat: 19.41549,
+          lng: -99.17112,
         },
       ],
     },
@@ -270,13 +270,6 @@ export const facade = {
 /** Espacios 360 del depto / townhouse 201–202 (assets actuales). */
 const spaces201_202 = [
   {
-    id: "fachada",
-    title: "Fachada",
-    src: "/360renders/TL149_EXTERIOR_FACHADA.png",
-    // Azimut en radianes. 0 mira a -Z (u≈0.75). La fachada queda en u≈0.52.
-    yaw: (0.75 - 0.52) * Math.PI * 2,
-  },
-  {
     id: "estudio",
     title: "Estudio",
     src: "/360renders/TL149_ESTACIONAMIENTO_ESTUDIO.jpg",
@@ -327,20 +320,20 @@ const spaces201_202 = [
 ] as const;
 
 const spacesDepto101 = [
-  spaces201_202[0], // Fachada
-  spaces201_202[5], // Recámara principal
-  spaces201_202[6], // Baño
-  spaces201_202[2], // Sala comedor
-  spaces201_202[3], // Cocina
+  spaces201_202[0], // Estudio
+  spaces201_202[4], // Recámara principal
+  spaces201_202[5], // Baño
+  spaces201_202[1], // Sala comedor
+  spaces201_202[2], // Cocina
 ] as const;
 
 const spacesDepto102 = [
-  spaces201_202[0], // Fachada
-  spaces201_202[5], // Recámara principal
-  spaces201_202[7], // Recámara 02
-  spaces201_202[6], // Baño
-  spaces201_202[2], // Sala comedor
-  spaces201_202[3], // Cocina
+  spaces201_202[0], // Estudio
+  spaces201_202[4], // Recámara principal
+  spaces201_202[6], // Recámara 02
+  spaces201_202[5], // Baño
+  spaces201_202[1], // Sala comedor
+  spaces201_202[2], // Cocina
 ] as const;
 
 const visitCta = { label: "Agenda visita", href: "#contacto" } as const;
