@@ -361,13 +361,13 @@ export function NeighborhoodMap({
             >
               {pin.home ? (
                 <span className="relative flex flex-col items-center">
-                  <span className="mb-1.5 whitespace-nowrap rounded-md bg-place-ink/95 px-2.5 py-1 text-[0.62rem] font-medium tracking-[0.12em] text-place-surface uppercase md:text-[0.68rem]">
+                  <span className="mb-1 max-w-[9rem] truncate whitespace-nowrap rounded-md bg-place-ink/95 px-2 py-0.5 text-[0.55rem] font-medium tracking-[0.1em] text-place-surface uppercase md:mb-1.5 md:max-w-none md:px-2.5 md:py-1 md:text-[0.68rem] md:tracking-[0.12em]">
                     {pin.label}
                   </span>
                   <span className="relative flex flex-col items-center">
-                    <span className="block h-3 w-3 rotate-45 rounded-[2px] bg-place-ink" />
+                    <span className="block h-2.5 w-2.5 rotate-45 rounded-[2px] bg-place-ink md:h-3 md:w-3" />
                     <span
-                      className="-mt-px h-2.5 w-px bg-place-ink"
+                      className="-mt-px h-2 w-px bg-place-ink md:h-2.5"
                       aria-hidden
                     />
                   </span>
@@ -375,16 +375,16 @@ export function NeighborhoodMap({
               ) : (
                 <>
                   {selected ? (
-                    <span className="absolute bottom-[calc(100%+0.4rem)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-place-ink/95 px-2.5 py-1 text-[0.62rem] font-medium tracking-[0.12em] text-place-surface uppercase md:text-[0.68rem]">
+                    <span className="absolute bottom-[calc(100%+0.35rem)] left-1/2 max-w-[9rem] -translate-x-1/2 truncate whitespace-nowrap rounded-md bg-place-ink/95 px-2 py-0.5 text-[0.55rem] font-medium tracking-[0.1em] text-place-surface uppercase md:bottom-[calc(100%+0.4rem)] md:max-w-none md:px-2.5 md:py-1 md:text-[0.68rem] md:tracking-[0.12em]">
                       {pin.label}
                     </span>
                   ) : null}
-                  <span className="flex h-11 w-11 items-center justify-center md:h-10 md:w-10">
+                  <span className="flex h-9 w-9 items-center justify-center md:h-10 md:w-10">
                     <span
                       className={
                         selected
-                          ? "block h-3 w-3 rounded-full border-[1.5px] border-place-ink bg-place-ink/30"
-                          : "block h-2.5 w-2.5 rounded-full border border-place-ink/80 bg-transparent"
+                          ? "block h-2.5 w-2.5 rounded-full border-[1.5px] border-place-ink bg-place-ink/30 md:h-3 md:w-3"
+                          : "block h-2 w-2 rounded-full border border-place-ink/80 bg-transparent md:h-2.5 md:w-2.5"
                       }
                     />
                   </span>

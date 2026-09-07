@@ -86,8 +86,8 @@ export const place = {
           id: "velarde",
           label: "Jardín Ramón López Velarde",
           walk: "12 Min",
-          lat: 19.409436,
-          lng: -99.155994,
+          lat: 19.409754,
+          lng: -99.157453,
         },
         {
           id: "espana",
