@@ -15,8 +15,8 @@
   --hero-green-light: #a3a892;
   --intro-surface: #d4d8c6;
   --intro-ink: #2a3220;
-  --place-surface: #c1c4b1;
-  --place-ink: #2f3a28;
+  --place-surface: #3d442c;
+  --place-ink: #e5e4d7;
   --plans-green-deep: #6f7654;
   --plans-green-mid: #9aa286;
   --plans-green-soft: #b8bca4;
@@ -178,10 +178,42 @@ summary {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.2;
-  mix-blend-mode: multiply;
+  opacity: 0.28;
+  mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 160px 160px;
+}
+
+/* Contenedor MapLibre: relative + tamaño explícito */
+.place-map-embed {
+  position: relative;
+  background: var(--place-surface);
+}
+
+.place-map-embed .maplibregl-canvas-container,
+.place-map-embed .maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.place-map-embed .maplibregl-ctrl-attrib {
+  background: transparent !important;
+  color: color-mix(in srgb, var(--place-ink) 40%, transparent);
+  font-size: 0.55rem;
+  letter-spacing: 0.02em;
+  box-shadow: none !important;
+}
+
+.place-map-embed .maplibregl-ctrl-attrib a {
+  color: inherit;
+}
+
+.place-map-embed .maplibregl-ctrl-logo {
+  display: none !important;
+}
+
+.place-map-embed .maplibregl-canvas {
+  outline: none;
 }
 
 .plans-surface {

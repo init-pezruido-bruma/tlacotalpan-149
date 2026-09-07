@@ -44,65 +44,97 @@ export const intro = {
 
 export const place = {
   id: "lugar",
-  title: "Tlacotalpan 149,",
-  titleLine2: "Roma Sur",
-  subtitle: "Ciudad de México · CP 06760",
-  body: [
-    "Vivir en Roma Sur significa estar rodeado de cultura, gastronomía y espacios verdes, sin renunciar a la tranquilidad de un entorno residencial. Tlacotalpan 149 se encuentra en una de las zonas con mayor valor urbano de la Ciudad de México, con acceso inmediato a parques, cafeterías, galerías, restaurantes y una amplia oferta cultural que hacen de cada recorrido una extensión de tu hogar.",
-  ],
+  title: "Lugares cercanos",
+  subtitle: "Todo lo esencial, a unos minutos caminando",
+  footnote:
+    "Radios de caminata desde Tlacotalpan 149 — 500 m (~6 min) · 1 km (~12 min) · 1.5 km (~18 min)",
   directions: {
     label: "Cómo llegar",
     href: "https://maps.google.com/?q=Tlacotalpan+149,+Roma+Sur,+Ciudad+de+M%C3%A9xico",
   },
-  pins: [
-    {
+  map: {
+    /** Ubicación exacta Tlacotalpan 149, Roma Sur. */
+    center: [19.41193, -99.166216] as const,
+    zoom: 14.1,
+    home: {
       id: "home",
       label: "Tlacotalpan 149",
-      walk: "",
-      note: "El edificio, en una calle residencial de Roma Sur.",
-      x: 54,
-      y: 48,
-      home: true,
+      lat: 19.40174459619503,
+      lng: -99.16549433770878,
+    },
+  },
+  categories: [
+    {
+      id: "parques",
+      title: "Parques y áreas verdes",
+      places: [
+        {
+          id: "pushkin",
+          label: "Parque Pushkin",
+          walk: "8 Min",
+          lat: 19.41951,
+          lng: -99.15458,
+        },
+        {
+          id: "mexico",
+          label: "Parque México",
+          walk: "9 Min",
+          lat: 19.411927,
+          lng: -99.169106,
+        },
+        {
+          id: "velarde",
+          label: "Jardín Ramón López Velarde",
+          walk: "12 Min",
+          lat: 19.409436,
+          lng: -99.155994,
+        },
+        {
+          id: "espana",
+          label: "Parque España",
+          walk: "14 Min",
+          lat: 19.41378,
+          lng: -99.172043,
+        },
+      ],
     },
     {
-      id: "mercado",
-      label: "Mercado Medellín",
-      walk: "6 min",
-      note: "Mercado de barrio, a seis minutos a pie.",
-      x: 30,
-      y: 66,
-    },
-    {
-      id: "metro",
-      label: "Metro Chilpancingo",
-      walk: "10 min",
-      note: "Línea 9, a diez minutos caminando.",
-      x: 16,
-      y: 42,
-    },
-    {
-      id: "parque",
-      label: "Parque España",
-      walk: "12 min",
-      note: "Área verde y sombra, a doce minutos a pie.",
-      x: 76,
-      y: 24,
-    },
-    {
-      id: "insurgentes",
-      label: "Insurgentes",
-      walk: "8 min",
-      note: "Corredor de restaurantes, cultura y transporte.",
-      x: 14,
-      y: 74,
-    },
-    {
-      id: "cafes",
-      label: "Cafés y cocina",
-      walk: "3 min",
-      note: "Cafeterías y gastronomía de la colonia, a la vuelta.",
-      x: 68,
-      y: 70,
+      id: "restaurantes",
+      title: "Restaurantes y cafés",
+      places: [
+        {
+          id: "toscano",
+          label: "Café Toscano",
+          walk: "6 Min",
+          // Orizaba 42, Roma Norte (Plaza Río de Janeiro)
+          lat: 19.42202,
+          lng: -99.16053,
+        },
+        {
+          id: "lalo",
+          label: "Lalo!",
+          walk: "8 Min",
+          // Zacatecas 173, Roma Norte 
+          lat: 19.41565,
+          lng: -99.16248,
+        },
+        {
+          id: "rosetta",
+          label: "Panadería Rosetta",
+          walk: "9 Min",
+          // Colima 179, Roma Norte
+          lat: 19.42011,
+          lng: -99.16056,
+        },
+        {
+          id: "maximo",
+          label: "Máximo Bistrot",
+          walk: "9 Min",
+          // Álvaro Obregón 65 Bis, Roma Norte 
+          lat: 19.41902,
+          lng: -99.15811,
+        },
+      ],
     },
   ],
 } as const;
