@@ -164,15 +164,30 @@ function animateToSection(sectionId: string, progress: number) {
 }
 
 /** Solo hash: `/#townhouse-201` (limpia `?unit=` si venía de un link viejo). */
-function setUnitRef(unitId: string) {
+function setUnitRef(unitId: string, mode: "push" | "replace" = "push") {
   const url = new URL(window.location.href);
   url.searchParams.delete("unit");
   const search = url.searchParams.toString();
-  window.history.pushState(
-    {},
-    "",
-    `${url.pathname}${search ? `?${search}` : ""}#${unitId}`,
-  );
+  const next = `${url.pathname}${search ? `?${search}` : ""}#${unitId}`;
+  if (mode === "replace") {
+    window.history.replaceState({}, "", next);
+  } else {
+    window.history.pushState({}, "", next);
+  }
+}
+
+/** URL absoluta compartible de una unidad (`https://…/#depto-101`). */
+export function getUnitShareUrl(unitId: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("unit");
+  url.hash = isUnitId(unitId) ? unitId : "";
+  return url.toString();
+}
+
+/** Actualiza el hash de unidad sin empujar historial (tabs del isométrico). */
+export function syncUnitInUrl(unitId: string) {
+  if (!isUnitId(unitId)) return;
+  setUnitRef(unitId, "replace");
 }
 
 /** Selecciona unidad + scroll al isométrico (carga con `/#depto-101`). */

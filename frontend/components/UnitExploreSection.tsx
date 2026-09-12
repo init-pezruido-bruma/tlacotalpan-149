@@ -21,10 +21,12 @@ import { getPanoLinks } from "../content/panoLinks";
 import {
   exitTourToCompare,
   getUnitFromUrl,
+  getUnitShareUrl,
   goToTour,
   ISOMETRIC_EVENT,
   setIsoScrollProgress,
   setTourScrollProgress,
+  syncUnitInUrl,
   TOUR_EVENT,
   UNIT_SECTION_ID,
   type IsometricEventDetail,
@@ -513,6 +515,168 @@ function IsometricVisual({
   );
 }
 
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    window.prompt("Copia el enlace:", text);
+    return false;
+  }
+}
+
+function ShareUnitButton({
+  unitId,
+  unitTitle,
+}: {
+  unitId: string;
+  unitTitle: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const resetTimerRef = useRef<number | null>(null);
+
+  const clearFeedbackTimer = useCallback(() => {
+    if (resetTimerRef.current !== null) {
+      window.clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = null;
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      clearFeedbackTimer();
+    },
+    [clearFeedbackTimer],
+  );
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  const showFeedback = useCallback(
+    (message: string) => {
+      setFeedback(message);
+      clearFeedbackTimer();
+      resetTimerRef.current = window.setTimeout(() => setFeedback(null), 2400);
+    },
+    [clearFeedbackTimer],
+  );
+
+  const prepareShare = useCallback(() => {
+    syncUnitInUrl(unitId);
+    const url = getUnitShareUrl(unitId);
+    const text = `${unitTitle} — Tlacotalpan 149\n${url}`;
+    return { url, text };
+  }, [unitId, unitTitle]);
+
+  const shareWhatsApp = useCallback(() => {
+    const { text } = prepareShare();
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(text)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+    setOpen(false);
+  }, [prepareShare]);
+
+  const shareCopy = useCallback(async () => {
+    const { url } = prepareShare();
+    const ok = await copyText(url);
+    setOpen(false);
+    if (ok) showFeedback("Enlace copiado");
+  }, [prepareShare, showFeedback]);
+
+  const actionClass =
+    "flex min-h-11 w-full cursor-pointer items-center px-4 text-left text-[0.72rem] tracking-[0.08em] text-compare-ink uppercase transition-colors hover:bg-compare-ink/5";
+
+  return (
+    <div ref={rootRef} className="relative mt-3">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-compare-ink/70 px-4 py-2 text-[0.65rem] tracking-[0.1em] text-compare-ink uppercase transition-colors hover:border-compare-ink hover:bg-compare-ink/5"
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden
+          className="shrink-0"
+        >
+          <path
+            d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M16 7l-4-4-4 4M12 3v13"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        Compartir
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          aria-label="Compartir departamento"
+          className="absolute bottom-full left-0 z-20 mb-2 min-w-[14.5rem] overflow-hidden rounded-xl border border-compare-ink/20 bg-[#e8e4d9] shadow-[0_12px_32px_rgba(47,58,40,0.12)]"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            className={actionClass}
+            onClick={shareWhatsApp}
+          >
+            WhatsApp
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className={`${actionClass} border-t border-compare-ink/15`}
+            onClick={shareCopy}
+          >
+            Copiar enlace
+          </button>
+        </div>
+      )}
+
+      <p
+        className="mt-2 min-h-[1.1rem] text-[0.65rem] leading-snug text-compare-ink/65"
+        aria-live="polite"
+      >
+        {feedback ?? "\u00a0"}
+      </p>
+    </div>
+  );
+}
+
 function IsoPanelCopy({ unit }: { unit: IsoUnit }) {
   return (
     <>
@@ -536,6 +700,7 @@ function IsoPanelCopy({ unit }: { unit: IsoUnit }) {
         <p className="text-[0.68rem] tracking-[0.18em] text-compare-ink/70 uppercase md:text-[0.78rem]">
           {unit.status}
         </p>
+        <ShareUnitButton unitId={unit.id} unitTitle={unit.title} />
       </div>
     </>
   );
@@ -1039,6 +1204,7 @@ export function UnitExploreSection() {
       setUnitId(match.id);
       setSpaceIndex(nextIndex);
       setSpaceId(match.spaces[nextIndex]?.id ?? null);
+      syncUnitInUrl(match.id);
     },
     [spaceId, spaceIndex, unitId],
   );

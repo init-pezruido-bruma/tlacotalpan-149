@@ -413,7 +413,7 @@ const spacesDepto102 = [
   },
 ] as const;
 
-const visitCta = { label: "Agenda visita", href: "#contacto" } as const;
+const visitCta = { label: "Solicitar brochure", href: "#contacto" } as const;
 
 const depto101Features = [
   "1 recámara",
