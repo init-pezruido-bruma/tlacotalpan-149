@@ -326,7 +326,7 @@ const spaces201_202 = [
   {
     id: "recamara-03",
     title: "Recámara 03",
-    src: "/360renders_new/TLP149_R1_DP101.png",
+    src: "/360renders_new/TLP149_R2_TH 01.jpg",
     yaw: panoYaw,
   },
   {

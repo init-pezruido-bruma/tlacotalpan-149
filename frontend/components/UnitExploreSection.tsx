@@ -17,6 +17,7 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { panoramas, unitIsometrics } from "../content";
 import { unitHotspots, townhouseStackHoverBands } from "../content/unitHotspots";
+import { getPanoLinks } from "../content/panoLinks";
 import {
   exitTourToCompare,
   getUnitFromUrl,
@@ -1012,6 +1013,23 @@ export function UnitExploreSection() {
     [spaces, sheetMode],
   );
 
+  const goSpaceById = useCallback(
+    (targetId: string) => {
+      const targetIndex = spaces.findIndex((s) => s.id === targetId);
+      if (targetIndex < 0) return;
+      goSpace(targetIndex);
+    },
+    [goSpace, spaces],
+  );
+
+  const panoLinks = useMemo(
+    () =>
+      space
+        ? getPanoLinks(space.id, spaces, space.yaw ?? 0)
+        : [],
+    [space, spaces],
+  );
+
   const selectUnit = useCallback(
     (nextId: string) => {
       const match = tourUnits.find((u) => u.id === nextId);
@@ -1155,6 +1173,10 @@ export function UnitExploreSection() {
               src={space.src}
               yaw={space.yaw}
               interactionEnabled={panoRotateEnabled}
+              links={panoLinks}
+              linksEnabled={isTourInteractive}
+              editLinks={hotspotEditMode}
+              onNavigate={goSpaceById}
             />
           ) : (
             <div className="absolute inset-0 bg-[#0c0e0a]" aria-hidden />
@@ -1252,7 +1274,7 @@ export function UnitExploreSection() {
                 type="button"
                 onClick={() => goSpace(index - 1)}
                 className="pointer-events-auto absolute top-1/2 left-4 hidden -translate-y-1/2 flex-col items-center gap-2 px-2 py-3 text-white/95 transition-colors hover:text-white md:flex"
-                aria-label={`Ir a ${prev.title}`}
+                aria-label={`Anterior: ${prev.title}`}
                 tabIndex={sheetMode ? -1 : 0}
               >
                 <span className="text-xs font-medium tracking-[0.16em] uppercase [writing-mode:vertical-rl] rotate-180">
@@ -1265,7 +1287,7 @@ export function UnitExploreSection() {
                 type="button"
                 onClick={() => goSpace(index + 1)}
                 className="pointer-events-auto absolute top-1/2 right-4 hidden -translate-y-1/2 flex-col items-center gap-2 px-2 py-3 text-white/95 transition-colors hover:text-white md:flex"
-                aria-label={`Ir a ${next.title}`}
+                aria-label={`Siguiente: ${next.title}`}
                 tabIndex={sheetMode ? -1 : 0}
               >
                 <span className="text-xs font-medium tracking-[0.16em] uppercase [writing-mode:vertical-rl] rotate-180">
