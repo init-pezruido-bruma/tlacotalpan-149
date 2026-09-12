@@ -1025,9 +1025,9 @@ export function UnitExploreSection() {
   const panoLinks = useMemo(
     () =>
       space
-        ? getPanoLinks(space.id, spaces, space.yaw ?? 0)
+        ? getPanoLinks(unitId, space.id, spaces, space.yaw ?? 0)
         : [],
-    [space, spaces],
+    [space, spaces, unitId],
   );
 
   const selectUnit = useCallback(
