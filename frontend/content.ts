@@ -267,73 +267,150 @@ export const facade = {
   ],
 } as const;
 
-/** Espacios 360 del depto / townhouse 201–202 (assets actuales). */
+/** Yaw inicial compartido para panoramas equirectangulares. */
+const panoYaw = (0.75 - 0.52) * Math.PI * 2;
+
+/** Estudio / estacionamiento (compartido). */
+const spaceEstudio = {
+  id: "estudio",
+  title: "Estudio",
+  src: "/360renders_new/TL149_ESTACIONAMIENTO_ESTUDIO.jpg",
+  yaw: panoYaw,
+} as const;
+
+/** Espacios 360 del townhouse 201–202 (renders TH). */
 const spaces201_202 = [
-  {
-    id: "estudio",
-    title: "Estudio",
-    src: "/360renders/TL149_ESTACIONAMIENTO_ESTUDIO.jpg",
-    yaw: (0.75 - 0.52) * Math.PI * 2,
-  },
+  spaceEstudio,
   {
     id: "sala-comedor",
     title: "Sala comedor",
-    src: "/360renders/TL149_D201_202_SALA COMEDOR.png",
-    yaw: (0.75 - 0.52) * Math.PI * 2,
+    src: "/360renders_new/TLP149_SALA_TH 01.jpg",
+    yaw: panoYaw,
   },
   {
     id: "cocina",
     title: "Cocina",
-    src: "/360renders/TL149_D201_202_COCINA.jpg",
-    yaw: (0.75 - 0.52) * Math.PI * 2,
+    src: "/360renders_new/TLP149_COCINA_TH 01.jpg",
+    yaw: panoYaw,
   },
   {
     id: "sala-tv",
     title: "Sala TV",
-    src: "/360renders/TL149_D201_202_SALA TV.png",
-    yaw: (0.75 - 0.52) * Math.PI * 2,
+    src: "/360renders_new/TLP149_SALA TV_TH 01.jpg",
+    yaw: panoYaw,
   },
   {
     id: "recamara-01",
     title: "Habitación principal",
-    src: "/360renders/TL149_D201_202_RECAMARA 01.jpg",
-    yaw: (0.75 - 0.52) * Math.PI * 2,
+    src: "/360renders_new/TLP149_R1_TH 01.jpg",
+    yaw: panoYaw,
   },
   {
-    id: "bano",
-    title: "Baño",
-    src: "/360renders/TL149_D201_202_BAÑO REC. PRINCIPAL.png",
-    yaw: (0.75 - 0.52) * Math.PI * 2,
+    id: "bano-01",
+    title: "Baño principal",
+    src: "/360renders_new/TLP149_B1_TH 01.png",
+    yaw: panoYaw,
   },
   {
     id: "recamara-02",
     title: "Recámara 02",
-    src: "/360renders/TL149_D201_202_RECAMARA 02.jpg",
-    yaw: (0.75 - 0.52) * Math.PI * 2,
+    src: "/360renders_new/TLP149_R2_TH 01.jpg",
+    yaw: panoYaw,
+  },
+  {
+    id: "bano-02",
+    title: "Baño 02",
+    src: "/360renders_new/TLP149_B2_TH 01.png",
+    yaw: panoYaw,
+  },
+  {
+    id: "recamara-03",
+    title: "Recámara 03",
+    src: "/360renders_new/TLP149_R1_DP101.png",
+    yaw: panoYaw,
+  },
+  {
+    id: "bano-03",
+    title: "Baño 03",
+    src: "/360renders_new/TLP149_B2_TH 01.png",
+    yaw: panoYaw,
   },
   {
     id: "roof-garden",
     title: "Roof garden",
-    src: "/360renders/TL149_D201_202_ROOF GARDEN.jpg",
-    yaw: (0.75 - 0.52) * Math.PI * 2,
+    src: "/360renders_new/TLP149_RoofGarden_TH 01.jpg",
+    yaw: panoYaw,
   },
 ] as const;
 
+/** Espacios 360 del depto 101 (renders DP + baño TH). */
 const spacesDepto101 = [
-  spaces201_202[0], // Estudio
-  spaces201_202[4], // Recámara principal
-  spaces201_202[5], // Baño
-  spaces201_202[1], // Sala comedor
-  spaces201_202[2], // Cocina
+  spaceEstudio,
+  {
+    id: "recamara-01",
+    title: "Habitación principal",
+    src: "/360renders_new/TLP149_R1_DP101.png",
+    yaw: panoYaw,
+  },
+  {
+    id: "bano-01",
+    title: "Baño",
+    src: "/360renders_new/TLP149_B1_TH 01.png",
+    yaw: panoYaw,
+  },
+  {
+    id: "sala-comedor",
+    title: "Sala comedor",
+    src: "/360renders_new/TLP149_SALA_DP01.jpg",
+    yaw: panoYaw,
+  },
+  {
+    id: "cocina",
+    title: "Cocina",
+    src: "/360renders_new/TLP149_COCINA_DP01.jpg",
+    yaw: panoYaw,
+  },
 ] as const;
 
+/** Espacios 360 del depto 102 (DP donde hay; R2/baño 02 aún TH). */
 const spacesDepto102 = [
-  spaces201_202[0], // Estudio
-  spaces201_202[4], // Recámara principal
-  spaces201_202[6], // Recámara 02
-  spaces201_202[5], // Baño
-  spaces201_202[1], // Sala comedor
-  spaces201_202[2], // Cocina
+  spaceEstudio,
+  {
+    id: "recamara-01",
+    title: "Habitación principal",
+    src: "/360renders_new/TLP149_R1_DP101.png",
+    yaw: panoYaw,
+  },
+  {
+    id: "bano-01",
+    title: "Baño principal",
+    src: "/360renders_new/TLP149_B1_TH 01.png",
+    yaw: panoYaw,
+  },
+  {
+    id: "recamara-02",
+    title: "Recámara 02",
+    src: "/360renders_new/TLP149_R2_TH 01.jpg",
+    yaw: panoYaw,
+  },
+  {
+    id: "bano-02",
+    title: "Baño 02",
+    src: "/360renders_new/TLP149_B2_TH 01.png",
+    yaw: panoYaw,
+  },
+  {
+    id: "sala-comedor",
+    title: "Sala comedor",
+    src: "/360renders_new/TLP149_SALA_DP01.jpg",
+    yaw: panoYaw,
+  },
+  {
+    id: "cocina",
+    title: "Cocina",
+    src: "/360renders_new/TLP149_COCINA_DP01.jpg",
+    yaw: panoYaw,
+  },
 ] as const;
 
 const visitCta = { label: "Agenda visita", href: "#contacto" } as const;
