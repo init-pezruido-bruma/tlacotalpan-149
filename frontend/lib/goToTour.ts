@@ -41,6 +41,10 @@ export function setTourScrollProgress(progress: number) {
   tourScrollProgress = progress;
 }
 
+export function getTourScrollProgress() {
+  return tourScrollProgress;
+}
+
 export function setIsoScrollProgress(progress: number) {
   isoScrollProgress = progress;
 }

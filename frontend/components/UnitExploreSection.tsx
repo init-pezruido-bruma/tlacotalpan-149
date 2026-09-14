@@ -28,6 +28,7 @@ import {
   setIsoScrollProgress,
   setTourScrollProgress,
   syncUnitInUrl,
+  getTourScrollProgress,
   TOUR_EVENT,
   UNIT_SECTION_ID,
   type IsometricEventDetail,
@@ -1361,14 +1362,38 @@ export function UnitExploreSection() {
     (nextId: string) => {
       const match = tourUnits.find((u) => u.id === nextId);
       if (!match || match.id === unitId) return;
-      setLeavingId(unitId);
+
+      const trigger = ScrollTrigger.getById(UNIT_SECTION_ID);
+      const keepProgress =
+        phase === "iso"
+          ? null
+          : panoExplore
+            ? getTourScrollProgress()
+            : (trigger?.progress ?? getTourScrollProgress());
+
+      // Solo crossfade en isométrico; en 360/ficha evita cargas que refrescan el pin
+      setLeavingId(phase === "iso" ? unitId : null);
       const nextIndex = resolveSpaceIndex(match, spaceId, spaceIndex);
       setUnitId(match.id);
       setSpaceIndex(nextIndex);
       setSpaceId(match.spaces[nextIndex]?.id ?? null);
+      setPanoExplore(false);
       syncUnitInUrl(match.id);
+
+      if (keepProgress === null) return;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const st = ScrollTrigger.getById(UNIT_SECTION_ID);
+          if (!st) return;
+          const y = st.start + (st.end - st.start) * keepProgress;
+          window.scrollTo(0, y);
+          st.scroll(y);
+          ScrollTrigger.update();
+        });
+      });
     },
-    [spaceId, spaceIndex, unitId],
+    [spaceId, spaceIndex, unitId, phase, panoExplore],
   );
 
   const darkUi = phase !== "iso";
@@ -1541,17 +1566,30 @@ export function UnitExploreSection() {
           ].join(" ")}
         >
           <div className="absolute top-14 right-0 left-0 max-w-none px-5 pt-3 md:top-0 md:max-w-[min(22rem,70vw)] md:px-8 md:pt-28">
-            <div className="min-w-0">
-              <h2 className="text-[clamp(1rem,4vw,1.65rem)] leading-tight font-medium tracking-[0.14em] text-white uppercase">
-                {space.title}
-              </h2>
-              <p className="mt-1.5 max-w-[16rem] text-[0.68rem] leading-relaxed tracking-[0.08em] text-white/78 md:mt-3 md:max-w-[18rem] md:text-[0.78rem]">
-                {isMobile
-                  ? panoExplore
-                    ? "Arrastra para mirar alrededor. Toca «Detener» para volver al scroll."
-                    : "Toca el botón del centro para mirar alrededor, o sigue bajando."
-                  : "Arrastra para explorar. Usa el botón de salida para volver al scroll."}
-              </p>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[clamp(1rem,4vw,1.65rem)] leading-tight font-medium tracking-[0.14em] text-white uppercase">
+                  {space.title}
+                </h2>
+                <p className="mt-1.5 max-w-[16rem] text-[0.68rem] leading-relaxed tracking-[0.08em] text-white/78 md:mt-3 md:max-w-[18rem] md:text-[0.78rem]">
+                  {isMobile
+                    ? panoExplore
+                      ? "Arrastra para mirar alrededor. Toca «Detener» para volver al scroll."
+                      : "Toca el botón del centro para mirar alrededor, o sigue bajando."
+                    : "Arrastra para explorar. Usa el botón de salida para volver al scroll."}
+                </p>
+              </div>
+              {panoExplore ? (
+                <button
+                  type="button"
+                  onClick={() => setPanoExplore(false)}
+                  className="pointer-events-auto inline-flex min-h-11 shrink-0 items-center rounded-full border border-white/70 bg-black/55 px-3 py-2 text-[0.62rem] font-medium tracking-[0.1em] text-white uppercase backdrop-blur-sm transition-colors hover:border-white hover:bg-black/70 md:hidden"
+                  aria-pressed
+                  tabIndex={sheetMode ? -1 : 0}
+                >
+                  Detener
+                </button>
+              ) : null}
             </div>
 
             {spaces.length > 1 ? (
@@ -1581,22 +1619,19 @@ export function UnitExploreSection() {
             ) : null}
           </div>
 
-          <div className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center md:hidden">
-            <button
-              type="button"
-              onClick={() => setPanoExplore((value) => !value)}
-              className={[
-                "pointer-events-auto inline-flex min-h-12 items-center rounded-full border px-6 py-3 text-[0.72rem] font-medium tracking-[0.14em] text-white uppercase backdrop-blur-sm transition-colors",
-                panoExplore
-                  ? "border-white/55 bg-black/45 hover:border-white hover:bg-black/60"
-                  : "border-white/80 bg-black/60 shadow-[0_8px_28px_rgba(0,0,0,0.35)] hover:border-white hover:bg-black/75",
-              ].join(" ")}
-              aria-pressed={panoExplore}
-              tabIndex={sheetMode ? -1 : 0}
-            >
-              {panoExplore ? "Detener" : "Explorar 360"}
-            </button>
-          </div>
+          {!panoExplore ? (
+            <div className="pointer-events-none absolute inset-x-0 top-[58%] z-[11] flex -translate-y-1/2 justify-center px-5 md:hidden">
+              <button
+                type="button"
+                onClick={() => setPanoExplore(true)}
+                className="pointer-events-auto inline-flex min-h-12 items-center rounded-full border border-white/80 bg-black/60 px-6 py-3 text-[0.72rem] font-medium tracking-[0.14em] text-white uppercase shadow-[0_8px_28px_rgba(0,0,0,0.35)] backdrop-blur-sm transition-colors hover:border-white hover:bg-black/75"
+                aria-pressed={false}
+                tabIndex={sheetMode ? -1 : 0}
+              >
+                Explorar 360
+              </button>
+            </div>
+          ) : null}
 
           <div className="absolute top-7 right-7 max-md:hidden">
             <button

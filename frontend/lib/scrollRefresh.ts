@@ -46,6 +46,9 @@ function restoreScroll(snapshot: RefreshSnapshot) {
  */
 export function scheduleScrollRefresh() {
   if (typeof window === "undefined") return;
+  // Durante el lock de 360 el pin está desactivado: un refresh
+  // recalcula spacers y el scrollY absoluto cae en Compara.
+  if (document.documentElement.classList.contains("pano-exploring")) return;
 
   if (timer) clearTimeout(timer);
   const bootMs =
@@ -54,6 +57,7 @@ export function scheduleScrollRefresh() {
       : 400;
   timer = setTimeout(() => {
     timer = null;
+    if (document.documentElement.classList.contains("pano-exploring")) return;
 
     const snapshot = snapshotScroll();
 
