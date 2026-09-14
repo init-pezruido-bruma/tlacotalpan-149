@@ -74,6 +74,13 @@ html.page-booting body {
   touch-action: none;
 }
 
+/* Recorrido 360 en móvil: el pin de GSAP no debe competir con el drag */
+html.pano-exploring,
+html.pano-exploring body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
 @media (pointer: coarse) {
   html {
     scroll-behavior: auto;

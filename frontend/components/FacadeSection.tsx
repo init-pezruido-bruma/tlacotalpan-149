@@ -180,10 +180,10 @@ export function FacadeSection() {
               style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
               aria-label={`Ver recorrido de ${spot.label}`}
             >
-              <span className="absolute bottom-[calc(100%+0.55rem)] left-1/2 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-md bg-[#f3f0e8]/92 px-2.5 py-1 text-center text-[0.62rem] font-medium tracking-[0.14em] text-[#1c1c16] uppercase max-md:whitespace-normal md:whitespace-nowrap md:text-[0.68rem]">
+              <span className="absolute bottom-[calc(100%+0.55rem)] left-1/2 z-10 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-md bg-[#f3f0e8]/92 px-2.5 py-1 text-center text-[0.62rem] font-medium tracking-[0.14em] text-[#1c1c16] uppercase max-md:whitespace-normal md:whitespace-nowrap md:text-[0.68rem]">
                 {spot.label}
               </span>
-              <span className="absolute left-1/2 top-0 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--hero-green-deep)] text-white shadow-[0_1px_6px_rgba(0,0,0,0.28)] transition-transform hover:scale-110 md:h-9 md:w-9">
+              <span className="absolute top-1/2 left-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--hero-green-deep)] text-white shadow-[0_1px_6px_rgba(0,0,0,0.28)] transition-transform hover:scale-110 md:top-0 md:h-9 md:w-9">
                 <EyeIcon />
               </span>
             </button>

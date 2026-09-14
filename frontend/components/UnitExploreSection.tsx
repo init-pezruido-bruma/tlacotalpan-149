@@ -10,6 +10,7 @@ import {
   useState,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
   type RefObject,
 } from "react";
 import gsap from "gsap";
@@ -148,11 +149,11 @@ function floorIndexFromPointer(
   return matches[0].index;
 }
 
-function EyeIcon() {
+function EyeIcon({ size = 16 }: { size?: number }) {
   return (
     <svg
-      width="16"
-      height="16"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden
@@ -231,7 +232,7 @@ function IsometricHotspots({
             onClick={() => goToTour(unit.id, spot.spaceId)}
             onPointerDown={(event) => event.stopPropagation()}
             className={[
-              "absolute z-10 min-h-11 min-w-11 -translate-x-1/2 -translate-y-1/2 transition-[opacity,transform] duration-300",
+              "absolute z-10 h-11 w-11 -translate-x-1/2 -translate-y-1/2 transition-[opacity,transform] duration-300 md:h-9 md:w-9",
               isVisible
                 ? "pointer-events-auto cursor-pointer opacity-100"
                 : "pointer-events-none opacity-0",
@@ -241,13 +242,13 @@ function IsometricHotspots({
             aria-hidden={!isVisible}
             tabIndex={isVisible ? 0 : -1}
           >
-            <span className="pointer-events-none absolute bottom-[calc(100%+0.45rem)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#f3f0e8]/94 px-2.5 py-1 text-[0.62rem] font-medium tracking-[0.14em] text-[#1c1c16] uppercase md:text-[0.68rem]">
-              {editMode && spot.floor !== undefined
+            <span className="pointer-events-none absolute bottom-[calc(100%+0.28rem)] left-1/2 z-10 max-w-[7.5rem] -translate-x-1/2 rounded-md bg-[#f3f0e8]/94 px-1.5 py-0.5 text-center text-[0.5rem] font-medium tracking-[0.1em] text-[#1c1c16] uppercase max-md:whitespace-normal md:max-w-none md:px-2 md:py-0.5 md:text-[0.58rem] md:tracking-[0.12em] md:whitespace-nowrap">
+                {editMode && spot.floor !== undefined
                 ? `${spot.label} · ${spot.x},${spot.y} · f${spot.floor}`
                 : spot.label}
             </span>
-            <span className="pointer-events-none absolute top-1/2 left-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--hero-green-deep)] text-white shadow-[0_1px_6px_rgba(0,0,0,0.28)] transition-transform hover:scale-110">
-              <EyeIcon />
+            <span className="pointer-events-none absolute top-1/2 left-1/2 flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[var(--hero-green-deep)] text-white shadow-[0_1px_4px_rgba(0,0,0,0.28)] transition-transform hover:scale-110 md:h-5 md:w-5">
+              <EyeIcon size={10} />
             </span>
           </button>
         );
@@ -412,8 +413,8 @@ function StackedIsometricVisual({
                 src={img.src}
                 alt={img.alt}
                 fill
-                sizes="(max-width: 768px) 88vw, 52vw"
-                className="object-contain object-bottom"
+                sizes="(max-width: 768px) 180vw, 52vw"
+                className="object-contain"
                 onLoad={scheduleScrollRefresh}
               />
             </div>
@@ -461,6 +462,118 @@ function StackedIsometricVisual({
   );
 }
 
+function MobileFloorIsometric({
+  images,
+  unit,
+  editMode = false,
+  revealed = false,
+}: {
+  images: readonly StackImage[];
+  unit: IsoUnit;
+  editMode?: boolean;
+  revealed?: boolean;
+}) {
+  const [floor, setFloor] = useState(0);
+
+  useEffect(() => {
+    setFloor(0);
+  }, [unit.id]);
+
+  if (!images.length) return null;
+
+  return (
+    <div className="flex h-full min-h-0 w-full flex-col">
+      <div className="relative min-h-0 flex-1">
+        <IsoStage stacked={false}>
+          {images.map((img, index) => {
+            const selected = index === floor;
+            return (
+              <div
+                key={img.src}
+                className={
+                  selected
+                    ? "absolute inset-0"
+                    : "pointer-events-none invisible absolute inset-0"
+                }
+                aria-hidden={!selected}
+              >
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  sizes="(max-width: 768px) 192vw, 52vw"
+                  className="object-contain"
+                  onLoad={scheduleScrollRefresh}
+                />
+              </div>
+            );
+          })}
+          <IsometricHotspots
+            unit={unit}
+            floor={floor}
+            activeFloor={floor}
+            editMode={editMode}
+            revealed={revealed}
+          />
+        </IsoStage>
+      </div>
+
+      <div
+        role="tablist"
+        aria-label="Niveles"
+        className="flex shrink-0 items-stretch justify-center border-t border-compare-ink/20"
+      >
+        {images.map((img, index) => {
+          const selected = index === floor;
+          return (
+            <button
+              key={img.src}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setFloor(index)}
+              className={[
+                "min-h-11 flex-1 px-2 text-[0.62rem] tracking-[0.12em] uppercase transition-colors",
+                selected
+                  ? "border-b-2 border-compare-ink text-compare-ink"
+                  : "border-b-2 border-transparent text-compare-ink/45",
+              ].join(" ")}
+            >
+              {img.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function IsoStage({
+  stacked,
+  children,
+}: {
+  stacked: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative h-full w-full overflow-hidden [container-type:size]">
+      <div
+        className={[
+          "relative",
+          stacked ? "aspect-[5760/5150]" : "aspect-[5760/3652]",
+          "max-md:absolute max-md:top-1/2 max-md:left-1/2 max-md:h-auto max-md:-translate-x-1/2 max-md:-translate-y-1/2",
+          stacked
+            ? "max-md:w-[min(170vw,calc(100cqh*5760/5150))]"
+            : "max-md:w-[min(192vw,calc(100cqh*5760/3652))]",
+          "md:mx-auto md:w-full",
+        ].join(" ")}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function IsometricVisual({
   unit,
   editMode = false,
@@ -471,20 +584,16 @@ function IsometricVisual({
   hotspotsRevealed?: boolean;
 }) {
   const isStacked = Boolean(unit.images?.length);
-  const sharedWidth = "mx-auto w-full max-w-[94vw] md:max-w-none md:flex-1";
-  const mobileHeight = "h-[min(44svh,400px)] md:h-auto";
 
   if (!isStacked && unit.image) {
     return (
-      <div
-        className={`relative ${sharedWidth} ${mobileHeight} md:aspect-[5760/3652]`}
-      >
+      <IsoStage stacked={false}>
         <Image
           src={unit.image.src}
           alt={unit.image.alt}
           fill
-          sizes="(max-width: 768px) 88vw, 52vw"
-          className="object-contain object-bottom"
+          sizes="(max-width: 768px) 192vw, 52vw"
+          className="object-contain"
           priority
           onLoad={scheduleScrollRefresh}
         />
@@ -493,25 +602,35 @@ function IsometricVisual({
           editMode={editMode}
           revealed={hotspotsRevealed}
         />
-      </div>
+      </IsoStage>
     );
   }
 
   if (!unit.images?.length) return null;
 
   return (
-    <div className={`relative ${sharedWidth} ${mobileHeight}`}>
-      <div className="relative h-full w-full md:aspect-[5760/5150]">
-        <div className="absolute inset-0 md:inset-x-0 md:bottom-0 md:top-auto md:aspect-[5760/3652]">
-          <StackedIsometricVisual
-            images={unit.images}
-            unit={unit}
-            editMode={editMode}
-            revealed={hotspotsRevealed}
-          />
-        </div>
+    <>
+      <div className="hidden h-full w-full md:block">
+        <IsoStage stacked>
+          <div className="absolute inset-x-0 bottom-0 aspect-[5760/3652]">
+            <StackedIsometricVisual
+              images={unit.images}
+              unit={unit}
+              editMode={editMode}
+              revealed={hotspotsRevealed}
+            />
+          </div>
+        </IsoStage>
       </div>
-    </div>
+      <div className="h-full w-full md:hidden">
+        <MobileFloorIsometric
+          images={unit.images}
+          unit={unit}
+          editMode={editMode}
+          revealed={hotspotsRevealed}
+        />
+      </div>
+    </>
   );
 }
 
@@ -909,12 +1028,53 @@ export function UnitExploreSection() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       event.preventDefault();
+      if (panoExplore) {
+        setPanoExplore(false);
+        return;
+      }
       exitTourToCompare();
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [phase, sheetMode]);
+  }, [phase, sheetMode, panoExplore]);
+
+  useEffect(() => {
+    if (!panoExplore) return;
+
+    const y = window.scrollY;
+    const trigger = ScrollTrigger.getById(UNIT_SECTION_ID);
+    trigger?.disable(false);
+    ScrollTrigger.normalizeScroll(false);
+    document.documentElement.classList.add("pano-exploring");
+
+    const prevent = (event: Event) => {
+      event.preventDefault();
+    };
+    const keepY = () => {
+      if (window.scrollY !== y) window.scrollTo(0, y);
+    };
+
+    window.addEventListener("wheel", prevent, { passive: false, capture: true });
+    window.addEventListener("touchmove", prevent, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("scroll", keepY, { passive: true });
+
+    return () => {
+      document.documentElement.classList.remove("pano-exploring");
+      window.removeEventListener("wheel", prevent, { capture: true });
+      window.removeEventListener("touchmove", prevent, { capture: true });
+      window.removeEventListener("scroll", keepY);
+      if (ScrollTrigger.isTouch > 0) {
+        ScrollTrigger.normalizeScroll(true);
+      }
+      trigger?.enable();
+      window.scrollTo(0, y);
+      trigger?.scroll(y);
+    };
+  }, [panoExplore]);
 
   // Keep the 360 mounted through sheet mode so frost/blur still has the
   // panorama behind it; only unmount when leaving the tour entirely.
@@ -1269,17 +1429,17 @@ export function UnitExploreSection() {
         className="absolute inset-0 z-[1] max-md:pt-14"
         aria-hidden={phase !== "iso"}
       >
-        <div className="flex h-full flex-col px-5 pb-6 max-md:gap-3 max-md:pt-2 md:flex-row md:items-center md:gap-10 md:px-10 md:pt-6 md:pb-16 lg:gap-16 lg:px-14">
+        <div className="flex h-full flex-col pb-6 max-md:gap-2 max-md:pt-1 md:flex-row md:items-center md:gap-10 md:px-10 md:pt-6 md:pb-16 lg:gap-16 lg:px-14">
           <div
             ref={isoVisualRef}
-            className="flex min-h-0 shrink-0 items-center justify-center max-md:h-[min(44svh,400px)] md:max-h-[34svh] md:flex-1 md:justify-end md:pr-4"
+            className="flex min-h-0 flex-1 items-center justify-center md:max-h-[34svh] md:justify-end md:pr-4"
             style={{ opacity: 0, visibility: "hidden" }}
           >
             <div className="relative h-full w-full">
               {leavingUnit && (
                 <div
                   ref={outgoingVisualRef}
-                  className="pointer-events-none absolute inset-x-0 bottom-0 z-[1]"
+                  className="pointer-events-none absolute inset-0 z-[1]"
                   aria-hidden
                 >
                   <IsometricVisual unit={leavingUnit} />
@@ -1287,7 +1447,7 @@ export function UnitExploreSection() {
               )}
               <div
                 ref={incomingVisualRef}
-                className="relative z-[2]"
+                className="relative z-[2] h-full w-full"
                 style={leavingUnit ? { opacity: 0 } : undefined}
               >
                 <IsometricVisual
@@ -1301,7 +1461,7 @@ export function UnitExploreSection() {
 
           <div
             ref={isoPanelRef}
-            className="relative w-full shrink-0 max-md:min-h-0 max-md:overflow-hidden md:mt-0 md:w-[min(22rem,34vw)] lg:w-[min(24rem,30vw)]"
+            className="relative w-full shrink-0 max-md:min-h-0 max-md:overflow-hidden max-md:px-5 md:mt-0 md:w-[min(22rem,34vw)] lg:w-[min(24rem,30vw)]"
             style={{ opacity: 0, visibility: "hidden" }}
           >
             {leavingUnit && (
@@ -1384,7 +1544,7 @@ export function UnitExploreSection() {
                 <p className="mt-1.5 max-w-[14rem] text-[0.68rem] leading-relaxed tracking-[0.08em] text-white/78 md:mt-3 md:max-w-[18rem] md:text-[0.78rem]">
                   {isMobile
                     ? panoExplore
-                      ? "Arrastra para mirar alrededor."
+                      ? "Arrastra para mirar alrededor. Toca «Detener» para volver al scroll."
                       : "Toca «Explorar 360» o sigue bajando."
                     : "Arrastra para explorar. Usa el botón de salida para volver al scroll."}
                 </p>
@@ -1508,30 +1668,32 @@ export function UnitExploreSection() {
                   ))}
                 </ul>
 
-                <a
-                  href={sheet.cta.href}
-                  className="mt-7 inline-flex min-h-11 items-center rounded-full border border-white/80 px-5 py-2 text-[0.7rem] tracking-[0.12em] text-white uppercase transition-colors hover:border-white hover:bg-white/10 md:mt-8 md:text-xs"
-                  tabIndex={sheetMode ? 0 : -1}
-                >
-                  {sheet.cta.label}
-                </a>
+                <div className="mt-7 flex flex-col items-start gap-5 md:mt-8">
+                  <a
+                    href={sheet.cta.href}
+                    className="inline-flex min-h-11 items-center rounded-full border border-white/80 px-5 py-2 text-[0.7rem] tracking-[0.12em] text-white uppercase transition-colors hover:border-white hover:bg-white/10 md:text-xs"
+                    tabIndex={sheetMode ? 0 : -1}
+                  >
+                    {sheet.cta.label}
+                  </a>
 
-                <a
-                  href={panoramas.compare.href}
-                  className="mt-6 inline-flex min-h-11 items-center gap-2 text-[0.68rem] tracking-[0.2em] text-white/75 uppercase transition-colors hover:text-white md:hidden"
-                  tabIndex={sheetMode ? 0 : -1}
-                >
-                  {panoramas.compare.label}
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                    <path
-                      d="M3.5 5.25 L7 8.75 L10.5 5.25"
-                      stroke="currentColor"
-                      strokeWidth="1.25"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
+                  <a
+                    href={panoramas.compare.href}
+                    className="inline-flex min-h-11 items-center gap-2 text-[0.68rem] tracking-[0.2em] text-white/75 uppercase transition-colors hover:text-white md:hidden"
+                    tabIndex={sheetMode ? 0 : -1}
+                  >
+                    {panoramas.compare.label}
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                      <path
+                        d="M3.5 5.25 L7 8.75 L10.5 5.25"
+                        stroke="currentColor"
+                        strokeWidth="1.25"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
