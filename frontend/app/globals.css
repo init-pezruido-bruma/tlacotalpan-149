@@ -116,6 +116,18 @@ summary {
   touch-action: manipulation;
 }
 
+/* Barras horizontales táctiles (pestañas de unidad, chips de espacios) */
+[data-scroll="allow"] {
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-scroll="allow"] a,
+[data-scroll="allow"] button,
+[data-scroll="allow"] [role="button"] {
+  touch-action: pan-x manipulation;
+}
+
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 3px;

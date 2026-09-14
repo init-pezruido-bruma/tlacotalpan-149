@@ -1068,7 +1068,9 @@ export function UnitExploreSection() {
       window.removeEventListener("touchmove", prevent, { capture: true });
       window.removeEventListener("scroll", keepY);
       if (ScrollTrigger.isTouch > 0) {
-        ScrollTrigger.normalizeScroll(true);
+        ScrollTrigger.normalizeScroll({
+          allowNestedScroll: true,
+        });
       }
       trigger?.enable();
       window.scrollTo(0, y);
@@ -1401,8 +1403,11 @@ export function UnitExploreSection() {
 
   const mobileUnitTabs = (
     <div
+      data-scroll="allow"
+      onTouchStart={(event) => event.stopPropagation()}
+      onTouchMove={(event) => event.stopPropagation()}
       className={[
-        "absolute inset-x-0 top-0 z-50 flex gap-2 overflow-x-auto border-b px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden",
+        "absolute inset-x-0 top-0 z-50 flex touch-pan-x gap-2 overflow-x-auto overscroll-x-contain border-b px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden",
         phase === "iso"
           ? "border-compare-ink/15 bg-[#e8e4d9]"
           : "border-white/10 bg-[#0c0e0a]",
@@ -1536,32 +1541,26 @@ export function UnitExploreSection() {
           ].join(" ")}
         >
           <div className="absolute top-14 right-0 left-0 max-w-none px-5 pt-3 md:top-0 md:max-w-[min(22rem,70vw)] md:px-8 md:pt-28">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <h2 className="text-[clamp(1rem,4vw,1.65rem)] leading-tight font-medium tracking-[0.14em] text-white uppercase">
-                  {space.title}
-                </h2>
-                <p className="mt-1.5 max-w-[14rem] text-[0.68rem] leading-relaxed tracking-[0.08em] text-white/78 md:mt-3 md:max-w-[18rem] md:text-[0.78rem]">
-                  {isMobile
-                    ? panoExplore
-                      ? "Arrastra para mirar alrededor. Toca «Detener» para volver al scroll."
-                      : "Toca «Explorar 360» o sigue bajando."
-                    : "Arrastra para explorar. Usa el botón de salida para volver al scroll."}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPanoExplore((value) => !value)}
-                className="pointer-events-auto inline-flex min-h-11 shrink-0 items-center rounded-full border border-white/70 bg-black/55 px-3 py-2 text-[0.62rem] font-medium tracking-[0.1em] text-white uppercase backdrop-blur-sm transition-colors hover:border-white hover:bg-black/70 md:hidden"
-                aria-pressed={panoExplore}
-                tabIndex={sheetMode ? -1 : 0}
-              >
-                {panoExplore ? "Detener" : "Explorar 360"}
-              </button>
+            <div className="min-w-0">
+              <h2 className="text-[clamp(1rem,4vw,1.65rem)] leading-tight font-medium tracking-[0.14em] text-white uppercase">
+                {space.title}
+              </h2>
+              <p className="mt-1.5 max-w-[16rem] text-[0.68rem] leading-relaxed tracking-[0.08em] text-white/78 md:mt-3 md:max-w-[18rem] md:text-[0.78rem]">
+                {isMobile
+                  ? panoExplore
+                    ? "Arrastra para mirar alrededor. Toca «Detener» para volver al scroll."
+                    : "Toca el botón del centro para mirar alrededor, o sigue bajando."
+                  : "Arrastra para explorar. Usa el botón de salida para volver al scroll."}
+              </p>
             </div>
 
             {spaces.length > 1 ? (
-              <div className="pointer-events-auto mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden">
+              <div
+                data-scroll="allow"
+                onTouchStart={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+                className="pointer-events-auto mt-3 flex touch-pan-x gap-2 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:hidden [&::-webkit-scrollbar]:hidden"
+              >
                 {spaces.map((s, spaceIdx) => (
                   <button
                     key={s.id}
@@ -1580,6 +1579,23 @@ export function UnitExploreSection() {
                 ))}
               </div>
             ) : null}
+          </div>
+
+          <div className="pointer-events-none absolute inset-0 z-[11] flex items-center justify-center md:hidden">
+            <button
+              type="button"
+              onClick={() => setPanoExplore((value) => !value)}
+              className={[
+                "pointer-events-auto inline-flex min-h-12 items-center rounded-full border px-6 py-3 text-[0.72rem] font-medium tracking-[0.14em] text-white uppercase backdrop-blur-sm transition-colors",
+                panoExplore
+                  ? "border-white/55 bg-black/45 hover:border-white hover:bg-black/60"
+                  : "border-white/80 bg-black/60 shadow-[0_8px_28px_rgba(0,0,0,0.35)] hover:border-white hover:bg-black/75",
+              ].join(" ")}
+              aria-pressed={panoExplore}
+              tabIndex={sheetMode ? -1 : 0}
+            >
+              {panoExplore ? "Detener" : "Explorar 360"}
+            </button>
           </div>
 
           <div className="absolute top-7 right-7 max-md:hidden">
@@ -1633,7 +1649,12 @@ export function UnitExploreSection() {
         >
           <div className="flex h-full flex-col overflow-y-auto px-5 pt-4 pb-10 max-md:pb-[max(1.5rem,env(safe-area-inset-bottom))] md:justify-center md:overflow-hidden md:px-10 md:pt-6 md:pb-16 lg:px-14">
             <div className="mx-auto flex w-full max-w-6xl flex-col items-stretch gap-8 md:h-full md:flex-row md:items-center md:justify-center md:gap-8 lg:gap-12">
-              <div className="flex w-full shrink-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] max-md:justify-start md:w-auto md:items-end md:justify-center md:overflow-visible md:pb-0 md:pt-0 md:gap-5 [&::-webkit-scrollbar]:hidden">
+              <div
+                data-scroll="allow"
+                onTouchStart={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+                className="flex w-full shrink-0 touch-pan-x snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 pt-1 [-ms-overflow-style:none] [scrollbar-width:none] max-md:justify-start md:w-auto md:items-end md:justify-center md:overflow-visible md:pb-0 md:pt-0 md:gap-5 [&::-webkit-scrollbar]:hidden"
+              >
                 {(sheet.plans ?? [sheet.plan]).map((plan) => (
                   <SheetPlan key={plan.src} plan={plan} />
                 ))}

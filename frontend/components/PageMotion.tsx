@@ -134,7 +134,9 @@ export function PageMotion({ children }: { children: React.ReactNode }) {
         ScrollTrigger.refresh();
 
         if (ScrollTrigger.isTouch > 0) {
-          ScrollTrigger.normalizeScroll(true);
+          ScrollTrigger.normalizeScroll({
+            allowNestedScroll: true,
+          });
         }
 
         const landedOnDeepLink = hasDeepLink && applyBootDeepLink();
