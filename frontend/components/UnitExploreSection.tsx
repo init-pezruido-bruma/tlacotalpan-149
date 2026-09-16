@@ -557,16 +557,17 @@ function IsoStage({
   children: ReactNode;
 }) {
   return (
-    <div className="relative h-full w-full overflow-hidden [container-type:size]">
+    <div className="relative w-full max-md:h-full max-md:overflow-hidden max-md:[container-type:size]">
       <div
         className={[
-          "relative",
+          "relative w-full",
           stacked ? "aspect-[5760/5150]" : "aspect-[5760/3652]",
+          // Móvil: zoom al recorte del render. Desktop: el aspect define la altura.
           "max-md:absolute max-md:top-1/2 max-md:left-1/2 max-md:h-auto max-md:-translate-x-1/2 max-md:-translate-y-1/2",
           stacked
             ? "max-md:w-[min(170vw,calc(100cqh*5760/5150))]"
             : "max-md:w-[min(192vw,calc(100cqh*5760/3652))]",
-          "md:mx-auto md:w-full",
+          "md:mx-auto md:h-auto md:w-full",
         ].join(" ")}
       >
         {children}
@@ -1462,10 +1463,10 @@ export function UnitExploreSection() {
         <div className="flex h-full flex-col pb-6 max-md:gap-2 max-md:pt-1 md:flex-row md:items-center md:gap-10 md:px-10 md:pt-6 md:pb-16 lg:gap-16 lg:px-14">
           <div
             ref={isoVisualRef}
-            className="flex min-h-0 flex-1 items-center justify-center md:max-h-[34svh] md:justify-end md:pr-4"
+            className="flex min-h-0 flex-1 items-center justify-center max-md:min-h-0 md:max-h-[34svh] md:justify-end md:pr-4"
             style={{ opacity: 0, visibility: "hidden" }}
           >
-            <div className="relative h-full w-full">
+            <div className="relative w-full max-md:h-full">
               {leavingUnit && (
                 <div
                   ref={outgoingVisualRef}
@@ -1477,7 +1478,7 @@ export function UnitExploreSection() {
               )}
               <div
                 ref={incomingVisualRef}
-                className="relative z-[2] h-full w-full"
+                className="relative z-[2] w-full max-md:h-full"
                 style={leavingUnit ? { opacity: 0 } : undefined}
               >
                 <IsometricVisual
@@ -1576,7 +1577,7 @@ export function UnitExploreSection() {
                     ? panoExplore
                       ? "Arrastra para mirar alrededor. Toca «Detener» para volver al scroll."
                       : "Toca el botón del centro para mirar alrededor, o sigue bajando."
-                    : "Arrastra para explorar. Usa el botón de salida para volver al scroll."}
+                    : "Arrastra para explorar. Sigue bajando para ver la ficha."}
                 </p>
               </div>
               {panoExplore ? (
@@ -1632,18 +1633,6 @@ export function UnitExploreSection() {
               </button>
             </div>
           ) : null}
-
-          <div className="absolute top-7 right-7 max-md:hidden">
-            <button
-              type="button"
-              onClick={exitTourToCompare}
-              className="pointer-events-auto inline-flex min-h-11 items-center rounded-full border border-white/70 bg-black/18 px-4 py-2 text-[0.68rem] font-medium tracking-[0.14em] text-white uppercase backdrop-blur-sm transition-colors hover:border-white hover:bg-black/28 md:text-[0.72rem]"
-              aria-label="Salir del recorrido 360 y volver al scroll"
-              tabIndex={sheetMode ? -1 : 0}
-            >
-              Volver al recorrido
-            </button>
-          </div>
 
           {spaces.length > 1 && prev && next ? (
             <>
