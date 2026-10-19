@@ -23,7 +23,6 @@ export default function Home() {
         <UnitExploreSection />
         <CompareSection />
         <ProgressSection />
-        {/* <ContactSection /> */}
       </main>
       <SiteFooter />
     </PageMotion>

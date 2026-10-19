@@ -1,30 +1,45 @@
 import Link from "next/link";
-import { contact, footer } from "../content";
+import { contact, footer, site } from "../content";
+import { BrochureForm } from "./BrochureForm";
+import { ReleasePageBoot } from "./ReleasePageBoot";
 
-export function ContactSection() {
+export function ContactPage() {
   return (
-    <section
-      id={contact.id}
-      className="bg-accent px-[max(1.25rem,calc((100%-var(--content))/2))] py-[var(--section-pad)] text-hero-ink"
-    >
-      <div className="reveal max-w-2xl">
-        <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)] leading-[1.08] tracking-[-0.02em]">
-          {contact.headline}
-        </h2>
-        <p className="mt-6 max-w-md text-base leading-relaxed text-hero-ink/80 md:text-lg">
-          {contact.body}
-        </p>
-        <a
-          href={contact.cta.href}
-          className="mt-10 inline-flex border-b border-hero-ink/45 pb-1 text-sm tracking-wide transition-[border-color] hover:border-hero-ink"
-        >
-          {contact.cta.label}
-        </a>
-        <p className="mt-8 text-xs tracking-wide text-hero-ink/55">
-          {contact.note}
-        </p>
-      </div>
-    </section>
+    <>
+      <ReleasePageBoot />
+      <header className="footer-surface relative isolate">
+        <div className="relative z-10 mx-auto flex w-[var(--content)] items-center justify-between gap-6 py-8 md:py-10">
+          <Link
+            href={contact.backHref}
+            className="text-[0.68rem] font-medium tracking-[0.28em] text-hero-ink uppercase transition-opacity hover:opacity-70 md:text-[0.72rem]"
+          >
+            {site.brand}
+          </Link>
+          <Link
+            href={contact.backHref}
+            className="inline-flex min-h-11 items-center text-[0.8rem] text-hero-ink/85 underline decoration-hero-ink/35 underline-offset-[5px] transition-[text-decoration-color,color] hover:text-hero-ink hover:decoration-hero-ink/70 md:text-[0.85rem]"
+          >
+            {contact.backLabel}
+          </Link>
+        </div>
+      </header>
+
+      <main className="intro-surface relative isolate flex-1">
+        <div className="intro-grain" aria-hidden />
+        <div className="relative z-10 mx-auto w-[var(--content)] py-[var(--section-pad)]">
+          <p className="text-[0.68rem] font-medium tracking-[0.28em] text-intro-ink/70 uppercase md:text-[0.72rem]">
+            {contact.eyebrow}
+          </p>
+          <h1 className="mt-4 max-w-3xl text-[clamp(1.85rem,5.5vw,3.5rem)] leading-[1.08] font-medium tracking-[0.04em] text-intro-ink uppercase">
+            {contact.headline}
+          </h1>
+          <p className="mt-6 max-w-md text-base leading-relaxed text-intro-ink/80 md:text-lg">
+            {contact.body}
+          </p>
+          <BrochureForm />
+        </div>
+      </main>
+    </>
   );
 }
 

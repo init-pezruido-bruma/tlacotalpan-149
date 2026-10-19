@@ -74,6 +74,14 @@ html.page-booting body {
   touch-action: none;
 }
 
+/* Páginas fuera del scroll narrativo: el bloqueo de arranque no aplica. */
+html.page-booting:has(.page-static),
+html.page-booting:has(.page-static) body {
+  overflow: auto !important;
+  overscroll-behavior: auto;
+  touch-action: auto;
+}
+
 /* Recorrido 360 en móvil: el pin de GSAP no debe competir con el drag */
 html.pano-exploring,
 html.pano-exploring body {
@@ -192,6 +200,14 @@ summary {
     opacity: 1;
     transform: none;
   }
+}
+
+.brochure-form input:-webkit-autofill,
+.brochure-form input:-webkit-autofill:hover,
+.brochure-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--intro-ink);
+  caret-color: var(--intro-ink);
+  box-shadow: 0 0 0 1000px var(--intro-surface) inset;
 }
 
 .footer-surface {

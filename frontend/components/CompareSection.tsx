@@ -134,9 +134,12 @@ export function CompareSection() {
                 </button>
                 <a
                   href={compare.visitHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(105deg,var(--hero-green-mid),var(--hero-green-deep))] px-4 py-2 text-[0.65rem] tracking-[0.1em] text-hero-ink uppercase transition-opacity hover:opacity-90"
                 >
                   {compare.visitCta}
+                  <span className="sr-only"> (se abre en otra pestaña)</span>
                 </a>
               </div>
             </article>

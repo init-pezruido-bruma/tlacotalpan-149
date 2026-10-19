@@ -1716,10 +1716,13 @@ export function UnitExploreSection() {
                 <div className="mt-7 flex flex-col items-start gap-5 md:mt-8">
                   <a
                     href={sheet.cta.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex min-h-11 items-center rounded-full border border-white/80 px-5 py-2 text-[0.7rem] tracking-[0.12em] text-white uppercase transition-colors hover:border-white hover:bg-white/10 md:text-xs"
                     tabIndex={sheetMode ? 0 : -1}
                   >
                     {sheet.cta.label}
+                    <span className="sr-only"> (se abre en otra pestaña)</span>
                   </a>
 
                   <a

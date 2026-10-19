@@ -14,7 +14,7 @@ export const nav = {
     { label: "El lugar", href: "#lugar" },
     { label: "Planos", href: "#planos" },
     { label: "Recorridos", href: "#recorridos" },
-    { label: "Contacto", href: "#contacto" },
+    { label: "Contacto", href: "/contacto" },
   ],
 } as const;
 
@@ -413,7 +413,7 @@ const spacesDepto102 = [
   },
 ] as const;
 
-const visitCta = { label: "Solicitar brochure", href: "#contacto" } as const;
+const visitCta = { label: "Solicitar brochure", href: "/contacto" } as const;
 
 const depto101Features = [
   "1 recámara",
@@ -786,14 +786,48 @@ export const compare = {
   visitHref: visitCta.href,
 } as const;
 
-const contactEmail = "hola@ejemplo.com";
+export const contactEmail = "rpp@birkat.com.mx";
+
+/** "mailto" abre el correo de quien visita, con asunto y texto listos. "resend" lo envía el sitio. */
+export const brochureDelivery = "mailto" as "mailto" | "resend";
 
 export const contact = {
-  id: "contacto",
-  headline: "Agenda una visita.",
-  body: "Cuéntanos qué buscas. Te compartimos disponibilidad, planos y el siguiente paso.",
-  cta: { label: "Escribirnos", href: `mailto:${contactEmail}` },
-  note: "Reemplaza este correo y los textos en content.ts",
+  path: "/contacto",
+  headline: "Solicita el brochure.",
+  body: "Déjanos tus datos. Te lo enviamos por correo o por WhatsApp.",
+  eyebrow: "Brochure",
+  metaDescription:
+    "Solicita el brochure de Tlacotalpan 149. Te lo enviamos por correo o por WhatsApp.",
+  backLabel: "Volver al proyecto",
+  backHref: "/",
+  form: {
+    name: "Nombre",
+    email: "Correo",
+    phone: "Teléfono",
+    channelLegend: "Cómo quieres recibirlo",
+    channels: [
+      { value: "correo", label: "Correo" },
+      { value: "whatsapp", label: "WhatsApp" },
+    ],
+    privacyLead: "He leído el",
+    privacyLink: "aviso de privacidad",
+    note: "Usamos estos datos solo para enviarte el brochure y dar seguimiento a tu solicitud.",
+    submit: "Enviar solicitud",
+    sending: "Enviando…",
+    prepare: "Preparar correo",
+    opening: "Abriendo…",
+    mailtoReadyTitle: "Revisa tu correo.",
+    mailtoReadyBody:
+      "La solicitud ya está escrita. Envíala para que te mandemos el brochure.",
+    mailtoAgain: "Abrir el correo otra vez",
+    successTitle: "Recibimos tu solicitud.",
+    successByChannel: {
+      correo: "Te enviaremos el brochure por correo.",
+      whatsapp: "Te enviaremos el brochure por WhatsApp.",
+    },
+    error: "No pudimos enviar la solicitud. Inténtalo de nuevo en un momento.",
+    fallback: `Si el formulario no carga, escribe a ${contactEmail}.`,
+  },
 } as const;
 
 export const privacy = {
@@ -804,7 +838,7 @@ export const privacy = {
   metaDescription:
     "Aviso de privacidad de Tlacotalpan 149: qué datos recabamos, para qué los usamos y cómo ejercer tus derechos.",
   updatedLabel: "Última actualización",
-  updated: "17 de agosto de 2026",
+  updated: "19 de octubre de 2026",
   backLabel: "Volver al proyecto",
   backHref: "/",
   lead:
@@ -861,7 +895,10 @@ export const privacy = {
         "No vendemos tus datos personales. Podemos compartirlos solo en estos casos:",
       ],
       items: [
-        "Proveedores que nos ayudan a operar el sitio o el correo (hospedaje, mensajería), bajo obligaciones de confidencialidad y solo para el servicio contratado.",
+        "Proveedores que nos ayudan a operar el sitio (hospedaje), bajo obligaciones de confidencialidad y solo para el servicio contratado.",
+        brochureDelivery === "resend"
+          ? "Resend, el servicio de correo que entrega al Responsable las solicitudes enviadas desde el formulario del sitio, únicamente para esa entrega."
+          : "Al enviar la solicitud, tu propio servicio de correo entrega el mensaje al Responsable. El sitio no guarda esos datos ni los transmite a un proveedor de correo.",
         "Cuando lo exija una autoridad competente o una disposición legal.",
         "Si el proyecto o los derechos sobre este sitio se transmiten a otra entidad, quien asumirá este aviso o publicará uno equivalente.",
       ],

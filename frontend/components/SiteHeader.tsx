@@ -14,11 +14,24 @@ export function SiteHeader() {
         aria-label="Principal"
         className="sr-only"
       >
-        {nav.links.map((link) => (
-          <a key={link.href} href={link.href} className="pointer-events-auto">
-            {link.label}
-          </a>
-        ))}
+        {nav.links.map((link) => {
+          const newPage = link.href.startsWith("/");
+          return (
+            <a
+              key={link.href}
+              href={link.href}
+              className="pointer-events-auto"
+              {...(newPage
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
+            >
+              {link.label}
+              {newPage ? (
+                <span className="sr-only"> (se abre en otra pestaña)</span>
+              ) : null}
+            </a>
+          );
+        })}
       </nav>
     </header>
   );
